@@ -11,18 +11,6 @@
       "path": "./games/meccha-chameleon/index.html",
       "source": "https://github.com/tenslant44/giggy",
       "status": "LOCAL BUILD"
-    },
-    {
-      "id": "click-lab",
-      "title": "Click Lab",
-      "description": "An incremental energy game: upgrade your generator, unlock achievements, and save progress locally.",
-      "category": "arcade",
-      "tags": ["incremental", "clicker", "idle", "arcade"],
-      "theme": "clicklab",
-      "symbol": "ϟ",
-      "path": "./games/click-lab/index.html",
-      "source": "https://github.com/tenslant44/shitlab",
-      "status": "LOCAL BUILD"
     }
   ]
 }
