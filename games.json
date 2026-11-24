@@ -82,6 +82,21 @@
       "path": "games/russianv3-main/index.html",
       "status": "AVAILABLE",
       "thumbnail": "games/russianv3-main /RussianFlagGIF.gif"
+    },
+    {
+      "id": "slope",
+      "title": "Slope",
+      "description": "The ball game where you roll down a hill avoiding shit",
+      "category": "arcade",
+      "tags": [
+        "3D",
+        "Arcade",
+        "Slope",
+        "Balls"
+      ],
+      "symbol": "⚽",
+      "path": "games/Slope/index.html",
+      "status": "AVAILABLE"
     }
   ]
 }
