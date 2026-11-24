@@ -1,0 +1,87 @@
+{
+  "games": [
+    {
+      "id": "meccha-chameleon",
+      "title": "Meccha Chameleon",
+      "description": "A colorful 3D hide-and-seek party game with maps, roles, bots, and custom paint options.",
+      "category": "party",
+      "tags": [
+        "chameleon",
+        "hide and seek",
+        "3d",
+        "party"
+      ],
+      "symbol": "め",
+      "theme": "chameleon",
+      "path": "games/meccha-chameleon/index.html",
+      "source": "https://github.com/tenslant44/giggy",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "sonic-afterimage",
+      "title": "Sonic Afterimage",
+      "description": "A Sonic-inspired platform adventure with zones, bosses, hazards, cutscenes, and save systems.",
+      "category": "platformer",
+      "tags": [
+        "sonic",
+        "platformer",
+        "adventure"
+      ],
+      "symbol": "S",
+      "theme": "sonic",
+      "thumbnail": "games/sonic-afterimage/uploads/image.png",
+      "path": "games/sonic-afterimage/index.html",
+      "source": "https://github.com/tenslant44/Sonic-Afterimage",
+      "status": "LOCAL SOURCE"
+    },
+    {
+      "id": "wunderkart",
+      "title": "Wunderkart DX",
+      "description": "A 3D kart racer with tracks, vehicles, ghost data, and multiplayer systems.",
+      "category": "racing",
+      "tags": [
+        "kart",
+        "racing",
+        "3d",
+        "ghosts"
+      ],
+      "symbol": "🏁",
+      "theme": "kart",
+      "thumbnail": "games/wunderkart-dx/uploads/image.png",
+      "path": "games/wunderkart-dx/index.html",
+      "source": "https://github.com/tenslant44/wunderkartv2",
+      "status": "LOCAL SOURCE"
+    },
+    {
+      "id": "bopimo-web-builds",
+      "title": "Bopimo Web Builds",
+      "description": "A collection of browser builds, prototypes, and experimental Bopimo clients.",
+      "category": "collection",
+      "tags": [
+        "bopimo",
+        "browser builds",
+        "prototypes"
+      ],
+      "symbol": "B",
+      "theme": "bopimo",
+      "path": "games/bopimo-web-builds/index.html",
+      "source": "https://github.com/tenslant44/BopimoWebBuilds",
+      "status": "SOURCE COLLECTION"
+    },
+    {
+      "id": "russian-fortnite",
+      "title": "Russian Fortnite",
+      "description": "V3. Try it out.",
+      "category": "websim",
+      "tags": [
+        "3D",
+        "Gore",
+        "WebSim"
+      ],
+      "symbol": "🪆",
+      "path": "games/russianv3-main/index.html",
+      "status": "AVAILABLE",
+      "thumbnail": "games/russianv3-main /RussianFlagGIF.gif"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MarsMoon Game Archive</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+<center>
+<table class="site" cellpadding="0" cellspacing="0" border="0">
+<tr><td>
+<table class="masthead" width="100%" cellpadding="10" cellspacing="0"><tr>
+<td width="72"><div class="logo">M</div></td>
+<td><font size="6" face="Arial"><b>MARS<span class="moon">MOON</span></b></font><br>
+<font face="Courier New" size="2">THE UNOFFICIAL BROWSER GAME ARCHIVE</font></td>
+<td align="right" class="mast-links"><a href="#library">GAME LIBRARY</a> &nbsp;|&nbsp; <a href="add-game.html">ADD A GAME</a> &nbsp;|&nbsp; <a href="https://github.com/tenslant44/marsmoon" target="_blank">SOURCE CODE</a></td>
+</tr></table>
+<table width="100%" class="ticker" cellpadding="5"><tr><td><marquee scrollamount="3">WELCOME TO MARSMOON!! &nbsp; NEW GAMES, OLD GAMES, WEB GAMES &nbsp; // &nbsp; NO ACCOUNT REQUIRED &nbsp; // &nbsp; BEST VIEWED WITH A BROWSER THAT CAN HANDLE TABLES</marquee></td></tr></table>
+<table width="100%" cellpadding="12" cellspacing="0" class="intro"><tr><td>
+<font size="5" face="Arial"><b>Welcome to the game shelf!</b></font><br>
+Browse the collection, pick a category, or search for something specific. This is a small independent archive of browser games and experiments.
+</td></tr></table>
+<a name="library"></a>
+<table width="100%" cellpadding="10" cellspacing="0"><tr><td>
+<font size="5" face="Arial"><b>GAME LIBRARY</b></font> <font size="2" color="#666666" face="Courier New" id="gameCount">LOADING...</font>
+</td></tr></table>
+<table width="100%" cellpadding="8" cellspacing="0" class="search-panel"><tr>
+<td width="100%">
+<form id="searchForm" action="#" onsubmit="return false;">
+<b>SEARCH:</b> <input type="text" id="search" name="q" size="34" maxlength="100" placeholder="Type a game name..." autocomplete="off">
+<input type="button" id="clearSearch" value="CLEAR">
+</form>
+<div id="filters" class="filters">
+<a href="#" class="filter active" data-filter="all">ALL GAMES</a>
+<a href="#" class="filter" data-filter="racing">RACING</a>
+<a href="#" class="filter" data-filter="platformer">PLATFORMERS</a>
+<a href="#" class="filter" data-filter="party">PARTY</a>
+<a href="#" class="filter" data-filter="arcade">ARCADE</a>
+<a href="#" class="filter" data-filter="action">ACTION</a>
+<a href="#" class="filter" data-filter="adventure">ADVENTURE</a>
+<a href="#" class="filter" data-filter="websim">WEBSIM</a>
+<a href="#" class="filter" data-filter="collection">COLLECTIONS</a>
+</div>
+</td></tr></table>
+<table width="100%" cellpadding="8" cellspacing="0"><tr><td>
+<div id="gameGrid" class="game-grid"><div class="loading">LOADING THE GAME ARCHIVE...</div></div>
+</td></tr></table>
+<table width="100%" cellpadding="10" cellspacing="0" class="footer"><tr><td>
+<b>MARS<span class="moon">MOON</span> GAME ARCHIVE</b><br>
+<font size="2">A classic-style browser game collection. <a href="https://github.com/tenslant44/marsmoon" target="_blank">View the repository</a>.</font>
+</td><td align="right"><font size="2" face="Courier New" id="footerStatus">STATUS: STARTING</font></td></tr></table>
+</td></tr></table>
+</center>
+<script type="text/javascript" src="app.js"></script>
+</body>
+</html>
