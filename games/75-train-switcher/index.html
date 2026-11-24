@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Train Switcher</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{min-height:100vh;background:#131a22;color:#fff;font-family:system-ui,-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;padding:12px;position:relative;overflow-x:hidden;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+  body::before{content:"";position:fixed;inset:-20%;z-index:-2;pointer-events:none;
+    background:
+      radial-gradient(45% 55% at 18% 22%,rgba(56,189,248,.12),transparent 70%),
+      radial-gradient(45% 55% at 82% 20%,rgba(250,204,21,.08),transparent 70%),
+      radial-gradient(55% 60% at 55% 85%,rgba(34,197,94,.09),transparent 70%);
+    animation:aurora 22s ease-in-out infinite alternate}
+  @keyframes aurora{from{transform:rotate(-2deg) scale(1)}to{transform:rotate(2deg) scale(1.07)}}
+  .wrap{width:min(640px,100%);display:flex;flex-direction:column;gap:8px}
+  .hud{display:flex;justify-content:space-between;align-items:center;background:rgba(29,40,52,.85);backdrop-filter:blur(8px);border:1px solid #33465c;padding:9px 14px;border-radius:12px;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+  .hud span{color:#38bdf8;font-variant-numeric:tabular-nums}
+  canvas{width:100%;height:auto;aspect-ratio:620/420;background:#1a2530;border-radius:14px;border:2px solid #33465c;cursor:pointer;display:block;touch-action:none;box-shadow:0 0 26px rgba(56,189,248,.15),0 14px 40px rgba(0,0,0,.5)}
+  .bar{display:flex;justify-content:space-between;align-items:center;font-size:.9rem;color:#cbd5e1;gap:10px}
+  button{padding:9px 16px;border:none;border-radius:9px;background:linear-gradient(180deg,#38bdf8,#0284c7);color:#04121f;font-weight:900;cursor:pointer;font-family:inherit;flex:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hud">
+    <div>Level: <span id="lvl">1/4</span></div>
+    <div>Delivered: <span id="deliv">0/4</span></div>
+    <div>Score: <span id="score">0</span></div>
+  </div>
+  <canvas id="c" width="620" height="420"></canvas>
+  <div class="bar">
+    <span id="msg">Click the yellow junction circles to switch tracks! Match train colors to stations.</span>
+    <button id="resetBtn">Restart</button>
+  </div>
+</div>
+<script>
+(() => {
+  const c = document.getElementById('c'), ctx = c.getContext('2d');
+  const lvlEl = document.getElementById('lvl'), delivEl = document.getElementById('deliv'), scoreEl = document.getElementById('score'), msgEl = document.getElementById('msg');
+
+  /* ---------- procedural SFX (respects the overlay's speaker preference) ---------- */
+  const Sfx = (() => {
+    let actx = null;
+    const ac = () => {
+      if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+      if (actx && actx.state === 'suspended') { try { actx.resume(); } catch (e) {} }
+      return actx;
+    };
+    const on = () => { try { return localStorage.getItem('aaa_sfx') !== '0'; } catch (e) { return true; } };
+    const tone = (f, d, type, vol, slide, delay) => {
+      if (!on()) return;
+      const a = ac(); if (!a) return;
+      try {
+        const t = a.currentTime + (delay || 0);
+        const o = a.createOscillator(), g = a.createGain();
+        o.type = type || 'sine';
+        o.frequency.setValueAtTime(Math.max(30, f), t);
+        if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, slide), t + d);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.linearRampToValueAtTime(vol || 0.05, t + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.0006, t + d);
+        o.connect(g); g.connect(a.destination);
+        o.start(t); o.stop(t + d + 0.05);
+      } catch (e) {}
+    };
+    const noise = (d, vol, freq, delay) => {
+      if (!on()) return;
+      const a = ac(); if (!a) return;
+      try {
+        const t = a.currentTime + (delay || 0);
+        const n = Math.max(32, (a.sampleRate * d) | 0);
+        const buf = a.createBuffer(1, n, a.sampleRate);
+        const ch = buf.getChannelData(0);
+        for (let i = 0; i < n; i++) ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 1.7);
+        const src = a.createBufferSource(); src.buffer = buf;
+        const f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = freq || 900;
+        const g = a.createGain(); g.gain.value = vol || 0.05;
+        src.connect(f); f.connect(g); g.connect(a.destination);
+        src.start(t);
+      } catch (e) {}
+    };
+    return {
+      unlock: ac,
+      switch: () => { tone(900, .05, 'square', .04, 700); tone(1200, .04, 'square', .03, null, .05); },
+      arrive: () => { tone(880, .1, 'triangle', .055, 1100); tone(1320, .12, 'sine', .04, null, .08); },
+      whistle: () => { tone(740, .16, 'sine', .04); tone(932, .16, 'sine', .035); tone(740, .12, 'sine', .035, null, .18); },
+      crash: () => { noise(.35, .1, 500); [220, 165, 110].forEach((f, i) => tone(f, .22, 'sawtooth', .05, null, i * .1)); },
+      level: () => { [523, 659, 784].forEach((f, i) => tone(f, .16, 'triangle', .05, null, i * .09)); },
+      win: () => { [523, 659, 784, 1046, 1318].forEach((f, i) => tone(f, .28, 'triangle', .05, null, i * .12)); }
+    };
+  })();
+
+  const COLORS = { red: '#ef4444', blue: '#3b82f6', green: '#22c55e', gold: '#eab308' };
+  let best = 0;
+  try { best = Number(localStorage.getItem('train_best') || 0); } catch (e) {}
+
+  const LEVELS = [
+    {
+      nodes: [
+        {x:40,y:210}, {x:200,y:210,sw:0}, {x:380,y:120,sw:1}, {x:380,y:300},
+        {x:560,y:80,st:'red'}, {x:560,y:170,st:'blue'}, {x:560,y:300,st:'green'}
+      ],
+      edges: [[0,1],[1,2],[1,3],[2,4],[2,5],[3,6]],
+      switches: [
+        { node:1, opts:[2,3], cur:0 },
+        { node:2, opts:[4,5], cur:0 }
+      ],
+      spawns: ['red','blue','green','red'],
+      speed: 78
+    },
+    {
+      nodes: [
+        {x:40,y:130}, {x:40,y:290}, {x:190,y:210,sw:0}, {x:350,y:210,sw:1},
+        {x:460,y:110,sw:2}, {x:570,y:70,st:'red'}, {x:570,y:150,st:'blue'},
+        {x:570,y:310,st:'green'}
+      ],
+      edges: [[0,2],[1,2],[2,3],[3,4],[3,7],[4,5],[4,6]],
+      switches: [
+        { node:2, opts:[3], cur:0 },
+        { node:3, opts:[4,7], cur:0 },
+        { node:4, opts:[5,6], cur:0 }
+      ],
+      spawns: ['green','blue','red','green','blue'],
+      speed: 86
+    },
+    {
+      nodes: [
+        {x:40,y:210}, {x:160,y:210,sw:0}, {x:300,y:110,sw:1}, {x:300,y:310,sw:2},
+        {x:560,y:70,st:'red'}, {x:560,y:160,st:'blue'}, {x:560,y:260,st:'green'}, {x:560,y:350,st:'gold'}
+      ],
+      edges: [[0,1],[1,2],[1,3],[2,4],[2,5],[3,6],[3,7]],
+      switches: [
+        { node:1, opts:[2,3], cur:0 },
+        { node:2, opts:[4,5], cur:0 },
+        { node:3, opts:[6,7], cur:0 }
+      ],
+      spawns: ['gold','red','green','blue','gold','red'],
+      speed: 92
+    },
+    {
+      nodes: [
+        {x:40,y:210}, {x:150,y:210,sw:0}, {x:280,y:115,sw:1}, {x:280,y:305,sw:2},
+        {x:420,y:115,sw:3}, {x:565,y:65,st:'red'}, {x:565,y:150,st:'blue'},
+        {x:565,y:255,st:'green'}, {x:565,y:355,st:'gold'}
+      ],
+      edges: [[0,1],[1,2],[1,3],[2,4],[2,6],[4,5],[4,6],[3,7],[3,8]],
+      switches: [
+        { node:1, opts:[2,3], cur:0 },
+        { node:2, opts:[4,6], cur:0 },
+        { node:3, opts:[7,8], cur:0 },
+        { node:4, opts:[5,6], cur:0 }
+      ],
+      spawns: ['blue','gold','red','green','red','gold','blue'],
+      speed: 102
+    }
+  ];
+
+  let lvlIdx = 0, score = 0, trains = [], queue = [], spawnT = 0, delivered = 0, need = 0, state = 'play';
+
+  function loadLevel(i) {
+    lvlIdx = i;
+    const L = LEVELS[i];
+    trains = [];
+    queue = [...L.spawns];
+    need = queue.length;
+    delivered = 0;
+    spawnT = 0.5;
+    state = 'play';
+    lvlEl.textContent = (i+1) + '/' + LEVELS.length;
+    delivEl.textContent = '0/' + need;
+    msgEl.textContent = 'Click yellow junctions to switch tracks!';
+  }
+
+  function nextNode(fromNode) {
+    const L = LEVELS[lvlIdx];
+    const sw = L.switches.find(s => s.node === fromNode);
+    if (sw) return sw.opts[sw.cur];
+    const edge = L.edges.find(e => e[0] === fromNode);
+    return edge ? edge[1] : null;
+  }
+
+  let last = performance.now();
+  function loop(now) {
+    const dt = Math.min(0.04, (now - last) / 1000);
+    last = now;
+    if (state === 'play') update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  function update(dt) {
+    const L = LEVELS[lvlIdx];
+    spawnT -= dt;
+    if (spawnT <= 0 && queue.length > 0) {
+      const col = queue.shift();
+      const startNode = (lvlIdx === 1 && Math.random() < 0.5) ? 1 : 0;
+      const nxt = nextNode(startNode);
+      trains.push({ color: col, from: startNode, to: nxt, t: 0, x: L.nodes[startNode].x, y: L.nodes[startNode].y, ang: 0 });
+      spawnT = 3.1;
+      Sfx.whistle();
+    }
+
+    for (let i = trains.length - 1; i >= 0; i--) {
+      const tr = trains[i];
+      const A = L.nodes[tr.from], B = L.nodes[tr.to];
+      const len = Math.hypot(B.x - A.x, B.y - A.y) || 1;
+      tr.t += (L.speed * dt) / len;
+      tr.x = A.x + (B.x - A.x) * Math.min(1, tr.t);
+      tr.y = A.y + (B.y - A.y) * Math.min(1, tr.t);
+      tr.ang = Math.atan2(B.y - A.y, B.x - A.x);
+
+      if (tr.t >= 1) {
+        if (B.st) {
+          if (B.st === tr.color) {
+            delivered++; score += 100;
+            scoreEl.textContent = score;
+            delivEl.textContent = delivered + '/' + need;
+            trains.splice(i, 1);
+            Sfx.arrive();
+            if (delivered >= need) {
+              if (lvlIdx + 1 < LEVELS.length) {
+                msgEl.textContent = 'Level Clear! Loading next...';
+                Sfx.level();
+                state = 'wait';
+                setTimeout(() => loadLevel(lvlIdx + 1), 1000);
+              } else {
+                state = 'win';
+                if (score > best) {
+                  best = score;
+                  try { localStorage.setItem('train_best', String(best)); } catch (e) {}
+                  msgEl.textContent = 'ALL LEVELS COMPLETE! NEW BEST: ' + score + '!';
+                } else {
+                  msgEl.textContent = 'ALL LEVELS COMPLETE! Score ' + score + ' (best ' + best + ')';
+                }
+                Sfx.win();
+                if (window.AAA) { AAA.flash(0.26); AAA.shockwave(innerWidth / 2, innerHeight / 2, '#22c55e', 200); }
+              }
+            }
+          } else {
+            state = 'over';
+            msgEl.textContent = `Wrong station! (${tr.color} train hit ${B.st} station). Press Restart.`;
+            Sfx.crash();
+            if (window.AAA) {
+              const r = c.getBoundingClientRect();
+              AAA.flash(0.3);
+              AAA.burst(r.left + tr.x * r.width / c.width, r.top + tr.y * r.height / c.height, COLORS[tr.color], 22);
+            }
+          }
+        } else {
+          tr.from = tr.to;
+          tr.to = nextNode(tr.from);
+          tr.t = 0;
+        }
+      }
+    }
+  }
+
+  function draw() {
+    const L = LEVELS[lvlIdx];
+    const bg = ctx.createLinearGradient(0, 0, 0, c.height);
+    bg.addColorStop(0, '#1e2c3a'); bg.addColorStop(1, '#141d28');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, c.width, c.height);
+    // subtle grass noise
+    ctx.fillStyle = 'rgba(120,160,120,.05)';
+    for (let i = 0; i < 60; i++) ctx.fillRect((i * 149) % c.width, (i * 211) % c.height, 3, 3);
+
+    // Tracks — ballast + rails
+    for (const [a, b] of L.edges) {
+      const A = L.nodes[a], B = L.nodes[b];
+      ctx.strokeStyle = '#33414f'; ctx.lineWidth = 13; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke();
+      ctx.strokeStyle = '#64748b'; ctx.lineWidth = 7;
+      ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke();
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke();
+    }
+
+    // Active switch paths
+    for (const sw of L.switches) {
+      if (sw.opts.length < 2) continue;
+      const A = L.nodes[sw.node], B = L.nodes[sw.opts[sw.cur]];
+      ctx.strokeStyle = '#facc15'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke();
+      // junction node with hand-drawn switch arrows
+      const pulse = 1 + 0.12 * Math.sin(performance.now() / 320);
+      ctx.fillStyle = '#facc15';
+      ctx.shadowColor = '#facc15'; ctx.shadowBlur = 10;
+      ctx.beginPath(); ctx.arc(A.x, A.y, 15 * pulse, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2.4; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.beginPath(); ctx.moveTo(A.x - 7, A.y + 3); ctx.lineTo(A.x + 5, A.y + 3); ctx.lineTo(A.x + 1, A.y + 7); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(A.x + 7, A.y - 3); ctx.lineTo(A.x - 5, A.y - 3); ctx.lineTo(A.x - 1, A.y - 7); ctx.stroke();
+    }
+
+    // Stations
+    for (const n of L.nodes) {
+      if (n.st) {
+        ctx.fillStyle = COLORS[n.st];
+        ctx.shadowColor = COLORS[n.st]; ctx.shadowBlur = 14;
+        ctx.beginPath(); ctx.roundRect(n.x - 18, n.y - 18, 36, 36, 8); ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+        // small platform notch
+        ctx.fillStyle = 'rgba(255,255,255,.35)';
+        ctx.fillRect(n.x - 10, n.y - 3, 20, 6);
+      }
+    }
+
+    // Trains — little locos facing travel direction
+    for (const tr of trains) {
+      ctx.save();
+      ctx.translate(tr.x, tr.y);
+      ctx.rotate(tr.ang || 0);
+      ctx.shadowColor = COLORS[tr.color]; ctx.shadowBlur = 12;
+      // body
+      ctx.fillStyle = COLORS[tr.color];
+      ctx.beginPath(); ctx.roundRect(-15, -9, 30, 18, 5); ctx.fill();
+      ctx.shadowBlur = 0;
+      // cab
+      ctx.fillStyle = 'rgba(255,255,255,.85)';
+      ctx.beginPath(); ctx.roundRect(-11, -5, 9, 10, 2); ctx.fill();
+      // nose
+      ctx.fillStyle = 'rgba(15,23,42,.3)';
+      ctx.beginPath(); ctx.roundRect(7, -9, 8, 18, 3); ctx.fill();
+      // wheels
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath(); ctx.arc(-8, 10.5, 3, 0, Math.PI*2); ctx.arc(6, 10.5, 3, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(-8, -10.5, 3, 0, Math.PI*2); ctx.arc(6, -10.5, 3, 0, Math.PI*2); ctx.fill();
+      // puff of steam
+      ctx.fillStyle = 'rgba(226,232,240,.5)';
+      const puff = (performance.now() / 350 + tr.t * 6) % 1.4;
+      ctx.beginPath(); ctx.arc(-18 - puff * 8, -4 - puff * 5, 2.5 + puff * 2, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  c.addEventListener('pointerdown', e => {
+    Sfx.unlock();
+    const r = c.getBoundingClientRect();
+    const mx = (e.clientX - r.left) * c.width / r.width;
+    const my = (e.clientY - r.top) * c.height / r.height;
+    const L = LEVELS[lvlIdx];
+    for (const sw of L.switches) {
+      if (sw.opts.length < 2) continue;
+      const n = L.nodes[sw.node];
+      if (Math.hypot(mx - n.x, my - n.y) < 34) {
+        sw.cur = (sw.cur + 1) % sw.opts.length;
+        Sfx.switch();
+        break;
+      }
+    }
+  });
+
+  document.getElementById('resetBtn').onclick = () => { score = 0; scoreEl.textContent = '0'; loadLevel(0); };
+  loadLevel(0);
+  requestAnimationFrame(loop);
+})();
+</script>
+
+<script src="../assets/aaa-arcade.js" defer></script>
+</body>
+</html>

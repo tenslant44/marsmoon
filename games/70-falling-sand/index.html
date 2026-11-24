@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Falling Sand</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: radial-gradient(1200px 700px at 50% -10%, #1a1d28 0%, #0f1015 60%);
+    color: #e8e9ee;
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: rgba(24,26,34,.9);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #2c2f3a;
+    box-shadow: 0 4px 20px rgba(0,0,0,.4);
+    flex-wrap: wrap;
+    z-index: 2;
+  }
+  .title {
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 2px;
+    margin-right: 8px;
+    background: linear-gradient(90deg, #e6c46a, #3f8fe0 60%, #ff9aa2);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  button {
+    background: #2a2d38;
+    color: #dfe2ec;
+    border: 1px solid #3a3e4c;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .12s, border-color .12s;
+  }
+  button:hover { background: #343845; }
+  button.active {
+    background: linear-gradient(180deg, #3d5fd9, #2f4cb8);
+    border-color: #5b7ef0;
+    color: #fff;
+    box-shadow: 0 0 14px rgba(93,126,240,.4);
+  }
+  button .swatch {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    margin-right: 6px;
+    vertical-align: -1px;
+  }
+  .sep { width: 1px; height: 24px; background: #3a3e4c; margin: 0 4px; }
+  label.brush {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: #aeb3c2;
+  }
+  input[type=range] { width: 110px; accent-color: #3d5fd9; }
+  #brushVal { min-width: 2ch; text-align: right; font-variant-numeric: tabular-nums; }
+  #clear { margin-left: auto; border-color: #6b3038; color: #ff9aa2; }
+  #clear:hover { background: #4a252b; }
+  #stage { flex: 1; position: relative; overflow: hidden; }
+  canvas {
+    display: block;
+    width: 100%; height: 100%;
+    image-rendering: pixelated;
+    cursor: crosshair;
+    touch-action: none;
+  }
+  .hint {
+    position: absolute;
+    right: 10px; bottom: 8px;
+    font-size: 11px;
+    color: #565b6b;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+  <div id="toolbar">
+    <span class="title">FALLING SAND</span>
+    <button data-el="1" class="active"><span class="swatch" style="background:#e6c46a"></span>Sand <kbd>1</kbd></button>
+    <button data-el="2"><span class="swatch" style="background:#3f8fe0"></span>Water <kbd>2</kbd></button>
+    <button data-el="3"><span class="swatch" style="background:#8a8f9c"></span>Stone <kbd>3</kbd></button>
+    <button data-el="5"><span class="swatch" style="background:#ff6b35"></span>Fire <kbd>5</kbd></button>
+    <button data-el="0"><span class="swatch" style="background:#14151a;border:1px solid #555"></span>Eraser <kbd>4</kbd></button>
+    <span class="sep"></span>
+    <label class="brush">Brush
+      <input type="range" id="brush" min="1" max="12" value="4">
+      <span id="brushVal">4</span>
+    </label>
+    <button id="clear">Clear</button>
+  </div>
+  <div id="stage">
+    <canvas id="c"></canvas>
+    <span class="hint">drag to draw &middot; keys 1&ndash;5 switch element &middot; fire evaporates in water</span>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- procedural SFX (respects the overlay's speaker preference) ---------- */
+  var Sfx = (function () {
+    var actx = null;
+    function ac() {
+      if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+      if (actx && actx.state === 'suspended') { try { actx.resume(); } catch (e) {} }
+      return actx;
+    }
+    function on() { try { return localStorage.getItem('aaa_sfx') !== '0'; } catch (e) { return true; } }
+    function tone(f, d, type, vol, slide, delay) {
+      if (!on()) return;
+      var c = ac(); if (!c) return;
+      try {
+        var t = c.currentTime + (delay || 0);
+        var o = c.createOscillator(), g = c.createGain();
+        o.type = type || 'sine';
+        o.frequency.setValueAtTime(Math.max(30, f), t);
+        if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, slide), t + d);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.linearRampToValueAtTime(vol || 0.05, t + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.0006, t + d);
+        o.connect(g); g.connect(c.destination);
+        o.start(t); o.stop(t + d + 0.05);
+      } catch (e) {}
+    }
+    function noise(d, vol, freq) {
+      if (!on()) return;
+      var c = ac(); if (!c) return;
+      try {
+        var n = Math.max(32, (c.sampleRate * d) | 0);
+        var buf = c.createBuffer(1, n, c.sampleRate);
+        var ch = buf.getChannelData(0);
+        for (var i = 0; i < n; i++) ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 1.6);
+        var src = c.createBufferSource(); src.buffer = buf;
+        var f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq || 1600;
+        var g = c.createGain(); g.gain.value = vol || 0.04;
+        src.connect(f); f.connect(g); g.connect(c.destination);
+        src.start();
+      } catch (e) {}
+    }
+    var lastSpray = 0;
+    return {
+      unlock: ac,
+      spray: function (el) {
+        var now = performance.now();
+        if (now - lastSpray < 70) return;
+        lastSpray = now;
+        noise(.05, .03, el === 2 ? 900 : el === 3 ? 500 : 1600);
+      },
+      tool: function (f) { tone(f || 500, .05, 'triangle', .04, (f || 500) * 1.2); },
+      clear: function () { noise(.3, .07, 700); tone(400, .22, 'triangle', .04, 150); }
+    };
+  })();
+
+  var EMPTY = 0, SAND = 1, WATER = 2, STONE = 3, FIRE = 5;
+  var CELL = 4; // pixels per cell
+
+  var canvas = document.getElementById('c');
+  var ctx = canvas.getContext('2d');
+  var stage = document.getElementById('stage');
+
+  var W = 0, H = 0;            // grid dimensions
+  var grid, updated;           // Uint8Array, Uint32Array
+  var img;                     // ImageData
+  var frame = 0;
+  var tool = SAND;
+  var brushSize = 4;
+
+  // Pre-computed color variants per element (r,g,b triples)
+  var PAL = {};
+  PAL[SAND]  = [[230,196,106],[222,185,92],[214,178,88],[238,204,120]];
+  PAL[WATER] = [[56,140,224],[48,128,214],[66,152,236],[44,120,200]];
+  PAL[STONE] = [[138,143,156],[128,133,146],[148,153,166],[120,125,138]];
+  PAL[FIRE]  = [[255,107,53],[255,160,60],[255,205,86],[255,80,40]];
+
+  function pick(el, i) {
+    var v = PAL[el][((i + (el === FIRE ? frame * 7 : 0)) * 2654435761 >>> 0) % PAL[el].length];
+    return v;
+  }
+
+  function resize() {
+    var r = stage.getBoundingClientRect();
+    var w = Math.max(1, Math.floor(r.width / CELL));
+    var h = Math.max(1, Math.floor(r.height / CELL));
+    if (w === W && h === H) return;
+    var old = grid, ow = W, oh = H;
+    W = w; H = h;
+    canvas.width = W; canvas.height = H;
+    grid = new Uint8Array(W * H);
+    updated = new Uint32Array(W * H);
+    if (old) {
+      var cw = Math.min(ow, W), ch = Math.min(oh, H);
+      for (var y = 0; y < ch; y++)
+        for (var x = 0; x < cw; x++)
+          grid[y * W + x] = old[y * ow + x];
+    }
+    img = ctx.createImageData(W, H);
+  }
+
+  function idx(x, y) { return y * W + x; }
+  function inB(x, y) { return x >= 0 && x < W && y >= 0 && y < H; }
+
+  function setCell(x, y, el) {
+    if (inB(x, y)) grid[idx(x, y)] = el;
+  }
+
+  function paint(cx, cy, el) {
+    var r = brushSize;
+    for (var dy = -r; dy <= r; dy++) {
+      for (var dx = -r; dx <= r; dx++) {
+        if (dx * dx + dy * dy > r * r) continue;
+        if (el !== EMPTY && Math.random() < 0.35) continue; // spray effect
+        setCell(cx + dx, cy + dy, el);
+      }
+    }
+  }
+
+  function move(from, to) {
+    grid[to] = grid[from];
+    grid[from] = EMPTY;
+    updated[to] = frame;
+  }
+
+  function swap(a, b) {
+    var t = grid[a];
+    grid[a] = grid[b];
+    grid[b] = t;
+    updated[b] = frame;
+    updated[a] = frame;
+  }
+
+  function step() {
+    frame++;
+    var ltr = (frame & 1) === 0; // alternate scan direction
+
+    for (var y = H - 1; y >= 0; y--) {
+      var rowBase = y * W;
+      var below = rowBase + W;
+      for (var k = 0; k < W; k++) {
+        var x = ltr ? k : W - 1 - k;
+        var i = rowBase + x;
+        var el = grid[i];
+        if (el === EMPTY || el === STONE) continue;
+        if (updated[i] === frame) continue;
+
+        if (el === FIRE) {
+          // die out over time / on water contact
+          var hitWater = false;
+          for (var wy = -1; wy <= 1 && !hitWater; wy++)
+            for (var wx = -1; wx <= 1 && !hitWater; wx++) {
+              var nx = x + wx, ny = y + wy;
+              if (inB(nx, ny) && grid[ny * W + nx] === WATER) hitWater = true;
+            }
+          if (hitWater) {
+            // hiss: fire and a bit of the water evaporate
+            grid[i] = EMPTY;
+            for (var wy2 = -1; wy2 <= 1; wy2++)
+              for (var wx2 = -1; wx2 <= 1; wx2++) {
+                var nx2 = x + wx2, ny2 = y + wy2;
+                if (inB(nx2, ny2) && grid[ny2 * W + nx2] === WATER && Math.random() < 0.5)
+                  grid[ny2 * W + nx2] = EMPTY;
+              }
+            continue;
+          }
+          if (Math.random() < 0.05) { grid[i] = EMPTY; continue; }
+          // rise: prefer straight up, then diagonals, with jitter
+          var fd = Math.random() < 0.5 ? 1 : -1;
+          if (y - 1 >= 0) {
+            var above = (y - 1) * W;
+            if (grid[above + x] === EMPTY) { move(i, above + x); continue; }
+            var fx = x + fd;
+            if (inB(fx, y - 1) && grid[above + fx] === EMPTY) { move(i, above + fx); continue; }
+            fx = x - fd;
+            if (inB(fx, y - 1) && grid[above + fx] === EMPTY) { move(i, above + fx); continue; }
+          }
+          // sideways jitter so flames dance
+          var jx = x + (Math.random() < 0.5 ? 1 : -1);
+          if (inB(jx, y) && grid[rowBase + jx] === EMPTY && Math.random() < 0.3) { move(i, rowBase + jx); continue; }
+        } else if (el === SAND) {
+          var d = Math.random() < 0.5 ? 1 : -1;
+          if (y + 1 < H) {
+            var dn = grid[below + x];
+            if (dn === EMPTY) { move(i, below + x); continue; }
+            if (dn === WATER) { swap(i, below + x); continue; } // sand sinks
+            var xd = x + d;
+            if (inB(xd, y + 1) && grid[below + xd] === EMPTY) { move(i, below + xd); continue; }
+            xd = x - d;
+            if (inB(xd, y + 1) && grid[below + xd] === EMPTY) { move(i, below + xd); continue; }
+          }
+        } else if (el === WATER) {
+          var d2 = Math.random() < 0.5 ? 1 : -1;
+          var moved = false;
+          if (y + 1 < H) {
+            if (grid[below + x] === EMPTY) { move(i, below + x); continue; }
+            var xd2 = x + d2;
+            if (inB(xd2, y + 1) && grid[below + xd2] === EMPTY) { move(i, below + xd2); continue; }
+            xd2 = x - d2;
+            if (inB(xd2, y + 1) && grid[below + xd2] === EMPTY) { move(i, below + xd2); continue; }
+          }
+          // spread sideways, preferring a few cells of flow
+          for (var s = 1; s <= 3; s++) {
+            var x1 = x + d2 * s;
+            if (!inB(x1, y) || grid[rowBase + x1] !== EMPTY) { d2 = -d2; break; }
+            if (s === 3 || !inB(x + d2 * (s + 1), y) || grid[rowBase + x + d2 * (s + 1)] !== EMPTY) {
+              move(i, rowBase + x1); moved = true; break;
+            }
+          }
+          if (!moved) {
+            var xo = x + d2;
+            if (inB(xo, y) && grid[rowBase + xo] === EMPTY) move(i, rowBase + xo);
+          }
+        }
+      }
+    }
+  }
+
+  function render() {
+    var d = img.data;
+    for (var i = 0, n = W * H; i < n; i++) {
+      var el = grid[i], p = i * 4;
+      if (el === EMPTY) {
+        d[p] = 20; d[p + 1] = 21; d[p + 2] = 26; d[p + 3] = 255;
+      } else {
+        var c = pick(el, i);
+        d[p] = c[0]; d[p + 1] = c[1]; d[p + 2] = c[2]; d[p + 3] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+    // brush-size cursor ring
+    if (hoverX >= 0) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(hoverX + 0.5, hoverY + 0.5, brushSize + 0.5, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+
+  function loop() {
+    step();
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  // ---- input ----
+  var drawing = false;
+  var lastX = -1, lastY = -1;
+  var hoverX = -1, hoverY = -1;
+
+  function toCell(e) {
+    var r = canvas.getBoundingClientRect();
+    var px = (e.clientX - r.left) * (canvas.width / r.width);
+    var py = (e.clientY - r.top) * (canvas.height / r.height);
+    return [Math.floor(px / 1), Math.floor(py / 1)]; // canvas pixels == cells
+  }
+
+  function paintLine(x0, y0, x1, y1) {
+    var dx = x1 - x0, dy = y1 - y0;
+    var n = Math.max(Math.abs(dx), Math.abs(dy), 1);
+    for (var s = 0; s <= n; s++)
+      paint(Math.round(x0 + dx * s / n), Math.round(y0 + dy * s / n), tool);
+  }
+
+  canvas.addEventListener('pointerdown', function (e) {
+    Sfx.unlock();
+    drawing = true;
+    canvas.setPointerCapture(e.pointerId);
+    var c = toCell(e);
+    lastX = c[0]; lastY = c[1];
+    paint(lastX, lastY, tool);
+    Sfx.spray(tool);
+  });
+  canvas.addEventListener('pointermove', function (e) {
+    var c = toCell(e);
+    hoverX = c[0]; hoverY = c[1];
+    if (!drawing) return;
+    paintLine(lastX, lastY, c[0], c[1]);
+    Sfx.spray(tool);
+    lastX = c[0]; lastY = c[1];
+  });
+  canvas.addEventListener('pointerleave', function () { hoverX = hoverY = -1; });
+  function stop() { drawing = false; }
+  canvas.addEventListener('pointerup', stop);
+  canvas.addEventListener('pointercancel', stop);
+
+  // ---- toolbar ----
+  var btns = document.querySelectorAll('#toolbar button[data-el]');
+  function setTool(el) {
+    tool = el;
+    Sfx.tool(420 + el * 130);
+    for (var i = 0; i < btns.length; i++)
+      btns[i].classList.toggle('active', +btns[i].dataset.el === el);
+  }
+  for (var i = 0; i < btns.length; i++)
+    btns[i].addEventListener('click', function () { setTool(+this.dataset.el); });
+
+  document.addEventListener('keydown', function (e) {
+    var map = { '1': SAND, '2': WATER, '3': STONE, '4': EMPTY, '5': FIRE };
+    if (map[e.key] !== undefined) setTool(map[e.key]);
+  });
+
+  var brushInput = document.getElementById('brush');
+  var brushVal = document.getElementById('brushVal');
+  brushInput.addEventListener('input', function () {
+    brushSize = +this.value;
+    brushVal.textContent = this.value;
+  });
+
+  document.getElementById('clear').addEventListener('click', function () {
+    grid.fill(EMPTY);
+    Sfx.clear();
+    if (window.AAA) AAA.flash(0.12);
+  });
+
+  window.addEventListener('resize', resize);
+
+  resize();
+  loop();
+})();
+</script>
+
+<script src="../assets/aaa-arcade.js" defer></script>
+</body>
+</html>

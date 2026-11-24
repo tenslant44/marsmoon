@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>World Capitals Quiz</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background:
+      radial-gradient(900px 500px at 85% -10%, rgba(56,189,248,0.16), transparent 60%),
+      radial-gradient(800px 500px at -10% 110%, rgba(52,211,153,0.12), transparent 60%),
+      linear-gradient(160deg, #071018 0%, #0a1e2a 55%, #0c2a38 100%);
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    color: #ecf5f9;
+    padding: 16px;
+    -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+  .card {
+    position: relative;
+    background: linear-gradient(170deg, rgba(16,32,44,0.92), rgba(8,17,26,0.96));
+    border: 1px solid rgba(125,211,252,0.16);
+    border-radius: 22px;
+    padding: 28px 24px 24px;
+    width: 100%;
+    max-width: 540px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
+    overflow: hidden;
+  }
+  .card::before {
+    content: ''; position: absolute; inset: -40% -20% auto; height: 300px;
+    background: radial-gradient(closest-side, rgba(56,189,248,0.14), transparent);
+    pointer-events: none;
+  }
+  .brand { text-align: center; position: relative; }
+  .globe { width: 54px; height: 54px; margin: 0 auto 8px; display: block; filter: drop-shadow(0 6px 18px rgba(56,189,248,0.45)); animation: bob 4s ease-in-out infinite; }
+  @keyframes bob { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-5px) rotate(3deg); } }
+  h1 { font-size: clamp(1.25rem, 5vw, 1.6rem); font-weight: 900; letter-spacing: .12em; margin-bottom: 3px;
+    background: linear-gradient(180deg, #fff, #7dd3fc); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .subtitle { text-align: center; color: #8fb0bf; font-size: .82rem; letter-spacing: .06em; margin-bottom: 20px; }
+
+  .stats { display: flex; gap: 8px; margin-bottom: 14px; }
+  .stat { flex: 1; background: rgba(125,211,252,0.05); border: 1px solid rgba(125,211,252,0.12); border-radius: 12px; padding: 8px 6px; text-align: center; }
+  .stat .label { font-size: .62rem; text-transform: uppercase; letter-spacing: .18em; color: #7fa8bb; font-weight: 700; }
+  .stat .value { font-size: 1.25rem; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .stat.streak .value { color: #fbbf24; text-shadow: 0 0 14px rgba(251,191,36,.5); }
+  .stat.score .value { color: #34d399; text-shadow: 0 0 14px rgba(52,211,153,.4); }
+
+  .progress { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+  .progress-bar { height: 100%; background: linear-gradient(90deg, #38bdf8, #34d399); width: 0%; transition: width .3s; box-shadow: 0 0 12px rgba(56,189,248,.6); }
+  .qtimer { height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; margin-bottom: 16px; }
+  .qtimer-bar { height: 100%; width: 100%; background: #fbbf24; transform-origin: left; box-shadow: 0 0 10px rgba(251,191,36,.6); }
+
+  .country-box { text-align: center; margin-bottom: 18px; min-height: 88px; display: flex; flex-direction: column; justify-content: center; }
+  .country-box .prompt { font-size: .8rem; color: #8fb0bf; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; font-weight: 700; }
+  .country-box .country { font-size: clamp(1.5rem, 6.4vw, 2.1rem); font-weight: 900; line-height: 1.15; text-shadow: 0 0 26px rgba(125,211,252,.35); }
+
+  .answers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 440px) { .answers { grid-template-columns: 1fr; } }
+  .btn {
+    background: linear-gradient(180deg, rgba(125,211,252,0.09), rgba(125,211,252,0.04));
+    border: 1.5px solid rgba(125,211,252,0.22);
+    border-radius: 13px; padding: 15px 12px;
+    font-size: .98rem; font-weight: 700; color: #eaf6fc;
+    cursor: pointer; transition: transform .1s, background .15s, border-color .15s, box-shadow .15s;
+    font-family: inherit; min-height: 52px; touch-action: manipulation;
+  }
+  .btn:hover:not(:disabled) { background: rgba(125,211,252,0.16); border-color: rgba(125,211,252,0.5); transform: translateY(-2px); box-shadow: 0 8px 20px -8px rgba(56,189,248,.4); }
+  .btn:active:not(:disabled) { transform: scale(.98); }
+  .btn:disabled { cursor: default; }
+  .btn.correct { background: linear-gradient(180deg, #34d399, #0ea371); border-color: #6ee7b7; animation: pop .3s; box-shadow: 0 0 26px rgba(52,211,153,.5); }
+  .btn.wrong { background: linear-gradient(180deg, #f87171, #dc2626); border-color: #fca5a5; animation: shake .3s; }
+  .btn.dim { opacity: .4; }
+  @keyframes pop { 50% { transform: scale(1.05); } }
+  @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+  .feedback { text-align: center; margin-top: 14px; min-height: 24px; font-weight: 700; font-size: .92rem; }
+  .feedback.good { color: #6ee7b7; }
+  .feedback.bad { color: #fca5a5; }
+
+  .screen-start, .screen-end { text-align: center; padding: 6px 0 2px; }
+  .big-cta {
+    margin-top: 20px; appearance: none; border: 0; cursor: pointer;
+    padding: 15px 38px; border-radius: 999px; font: 800 14px/1 inherit; letter-spacing: .18em;
+    color: #052030; background: linear-gradient(135deg, #7dd3fc, #34d399);
+    box-shadow: 0 12px 30px -8px rgba(56,189,248,.8), inset 0 1px 0 rgba(255,255,255,.5);
+    transition: transform .12s, filter .15s;
+  }
+  .big-cta:hover { transform: translateY(-2px); filter: brightness(1.06); }
+  .big-cta:active { transform: scale(.98); }
+  .howto { display: flex; flex-direction: column; gap: 8px; margin: 18px auto 0; max-width: 360px; text-align: left; }
+  .howto div { display: flex; gap: 10px; align-items: center; font-size: .82rem; color: #a7c6d4; background: rgba(125,211,252,.05); border: 1px solid rgba(125,211,252,.1); padding: 9px 12px; border-radius: 11px; }
+  .howto b { color: #e8f6fd; }
+  .howto .dot { width: 8px; height: 8px; border-radius: 50%; background: #38bdf8; flex: none; box-shadow: 0 0 8px #38bdf8; }
+  .micro { margin-top: 14px; font-size: .72rem; color: #6d8fa0; letter-spacing: .08em; }
+  .micro b { color: #a9d6ea; }
+
+  .end-big { font-size: clamp(2.6rem, 11vw, 3.6rem); font-weight: 900; margin: 10px 0 2px;
+    background: linear-gradient(180deg, #fff, #7dd3fc); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .end-sub { color: #8fb0bf; margin-bottom: 8px; font-size: .9rem; }
+  .end-sub b { color: #fbbf24; }
+  .newbest { display: inline-block; padding: 5px 14px; border-radius: 999px; font-size: .75rem; font-weight: 800; letter-spacing: .08em;
+    background: rgba(251,191,36,.14); border: 1px solid rgba(251,191,36,.45); color: #fcd34d; margin-bottom: 4px; }
+  .restart { display: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div id="startScreen" class="screen-start">
+    <div class="brand">
+      <svg class="globe" viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" fill="#0e7490" stroke="#7dd3fc" stroke-width="2.5"/><ellipse cx="32" cy="32" rx="13" ry="27" fill="none" stroke="#a5f3fc" stroke-width="1.6" opacity=".8"/><path d="M5 32 h54 M9 20 h46 M9 44 h46" stroke="#a5f3fc" stroke-width="1.6" fill="none" opacity=".8"/><path d="M18 14 Q30 22 26 34 Q40 30 44 20 Q34 8 18 14Z" fill="#34d399"/><path d="M36 44 Q48 40 50 48 Q42 56 32 52 Z" fill="#34d399"/><path d="M14 40 Q20 46 18 52 Q10 48 10 42 Z" fill="#34d399"/></svg>
+      <h1>WORLD CAPITALS</h1>
+      <div class="subtitle">15 countries &middot; name each capital before time runs out</div>
+    </div>
+    <div class="howto">
+      <div><span class="dot"></span><span><b>4 choices</b> — tap the right capital.</span></div>
+      <div><span class="dot"></span><span><b>Beat the clock</b> — faster answers score more.</span></div>
+      <div><span class="dot"></span><span><b>Streaks</b> multiply your points.</span></div>
+    </div>
+    <button class="big-cta" id="startBtn">START QUIZ</button>
+    <p class="micro">Best score <b id="startBest">0</b> &middot; or press SPACE</p>
+  </div>
+
+  <div id="quizScreen" style="display:none">
+    <div class="stats">
+      <div class="stat score"><div class="label">Score</div><div class="value" id="score">0</div></div>
+      <div class="stat streak"><div class="label">Streak</div><div class="value" id="streak">0</div></div>
+      <div class="stat"><div class="label">Best</div><div class="value" id="best">0</div></div>
+      <div class="stat"><div class="label">Round</div><div class="value" id="round">0</div></div>
+    </div>
+    <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="qtimer"><div class="qtimer-bar" id="qtimerBar"></div></div>
+    <div class="country-box">
+      <div class="prompt">Capital of</div>
+      <div class="country" id="country">&mdash;</div>
+    </div>
+    <div class="answers" id="answers"></div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <div id="endScreen" class="screen-end" style="display:none">
+    <div class="subtitle" style="margin-bottom:0">Quiz complete</div>
+    <div class="end-big" id="finalScore">0</div>
+    <div id="newBest" class="newbest" hidden>New best score</div>
+    <div class="end-sub" id="finalDetail"></div>
+    <button class="big-cta" id="againBtn">PLAY AGAIN</button>
+    <p class="micro">Press <b>R</b> to retry</p>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// [country, capital]
+var DATA = [
+  ['France','Paris'],['Germany','Berlin'],['Italy','Rome'],['Spain','Madrid'],
+  ['Portugal','Lisbon'],['United Kingdom','London'],['Ireland','Dublin'],
+  ['Netherlands','Amsterdam'],['Belgium','Brussels'],['Switzerland','Bern'],
+  ['Austria','Vienna'],['Poland','Warsaw'],['Czech Republic','Prague'],
+  ['Hungary','Budapest'],['Greece','Athens'],['Sweden','Stockholm'],
+  ['Norway','Oslo'],['Denmark','Copenhagen'],['Finland','Helsinki'],
+  ['Iceland','Reykjavik'],['Russia','Moscow'],['Ukraine','Kyiv'],
+  ['Romania','Bucharest'],['Bulgaria','Sofia'],['Croatia','Zagreb'],
+  ['Serbia','Belgrade'],['Slovakia','Bratislava'],['Slovenia','Ljubljana'],
+  ['Estonia','Tallinn'],['Latvia','Riga'],['Lithuania','Vilnius'],
+  ['Belarus','Minsk'],['Albania','Tirana'],['North Macedonia','Skopje'],
+  ['Bosnia and Herzegovina','Sarajevo'],['Montenegro','Podgorica'],
+  ['Moldova','Chisinau'],['Luxembourg','Luxembourg City'],['Malta','Valletta'],
+  ['Cyprus','Nicosia'],['Turkey','Ankara'],['Georgia','Tbilisi'],
+  ['Armenia','Yerevan'],['Azerbaijan','Baku'],
+  ['Egypt','Cairo'],['Nigeria','Abuja'],['Kenya','Nairobi'],
+  ['South Africa','Pretoria'],['Ethiopia','Addis Ababa'],['Morocco','Rabat'],
+  ['Algeria','Algiers'],['Tunisia','Tunis'],['Ghana','Accra'],
+  ['Tanzania','Dodoma'],['Uganda','Kampala'],['Sudan','Khartoum'],
+  ['Libya','Tripoli'],['Senegal','Dakar'],['Cameroon','Yaounde'],
+  ['Zimbabwe','Harare'],['Zambia','Lusaka'],['Angola','Luanda'],
+  ['Madagascar','Antananarivo'],['Mozambique','Maputo'],['Botswana','Gaborone'],
+  ['Namibia','Windhoek'],['Rwanda','Kigali'],['Mali','Bamako'],
+  ['Ivory Coast','Yamoussoukro'],['Somalia','Mogadishu'],['DR Congo','Kinshasa'],
+  ['United States','Washington, D.C.'],['Canada','Ottawa'],['Mexico','Mexico City'],
+  ['Brazil','Brasilia'],['Argentina','Buenos Aires'],['Chile','Santiago'],
+  ['Peru','Lima'],['Colombia','Bogota'],['Venezuela','Caracas'],
+  ['Ecuador','Quito'],['Bolivia','Sucre'],['Paraguay','Asuncion'],
+  ['Uruguay','Montevideo'],['Cuba','Havana'],['Jamaica','Kingston'],
+  ['Haiti','Port-au-Prince'],['Dominican Republic','Santo Domingo'],
+  ['Guatemala','Guatemala City'],['Honduras','Tegucigalpa'],
+  ['El Salvador','San Salvador'],['Nicaragua','Managua'],
+  ['Costa Rica','San Jose'],['Panama','Panama City'],['Bahamas','Nassau'],
+  ['Trinidad and Tobago','Port of Spain'],
+  ['China','Beijing'],['Japan','Tokyo'],['South Korea','Seoul'],
+  ['India','New Delhi'],['Thailand','Bangkok'],['Vietnam','Hanoi'],
+  ['Indonesia','Jakarta'],['Malaysia','Kuala Lumpur'],['Philippines','Manila'],
+  ['Singapore','Singapore'],['Pakistan','Islamabad'],['Bangladesh','Dhaka'],
+  ['Sri Lanka','Sri Jayawardenepura Kotte'],['Nepal','Kathmandu'],
+  ['Myanmar','Naypyidaw'],['Cambodia','Phnom Penh'],['Laos','Vientiane'],
+  ['Mongolia','Ulaanbaatar'],['Kazakhstan','Astana'],['Uzbekistan','Tashkent'],
+  ['Iran','Tehran'],['Iraq','Baghdad'],['Saudi Arabia','Riyadh'],
+  ['Israel','Jerusalem'],['Jordan','Amman'],['Lebanon','Beirut'],
+  ['Syria','Damascus'],['United Arab Emirates','Abu Dhabi'],['Qatar','Doha'],
+  ['Kuwait','Kuwait City'],['Oman','Muscat'],['Yemen','Sanaa'],
+  ['Afghanistan','Kabul'],['Kyrgyzstan','Bishkek'],['Tajikistan','Dushanbe'],
+  ['Turkmenistan','Ashgabat'],['Bahrain','Manama'],['Bhutan','Thimphu'],
+  ['Brunei','Bandar Seri Begawan'],['Maldives','Male'],
+  ['Australia','Canberra'],['New Zealand','Wellington'],['Fiji','Suva'],
+  ['Papua New Guinea','Port Moresby'],['Samoa','Apia'],['Tonga',"Nuku'alofa"],
+  ['Vanuatu','Port Vila'],['Solomon Islands','Honiara'],
+  ['North Korea','Pyongyang'],['Taiwan','Taipei'],['Timor-Leste','Dili']
+];
+
+var QUESTIONS_PER_GAME = 15;
+var QUESTION_TIME = 12000;
+
+var pool = [];
+var qIndex = 0, score = 0, streak = 0, bestStreak = 0, correctCount = 0;
+var best = 0;
+var locked = false;
+var qStart = 0, qRaf = 0, qLeft = QUESTION_TIME;
+
+var scoreEl = document.getElementById('score');
+var streakEl = document.getElementById('streak');
+var bestEl = document.getElementById('best');
+var roundEl = document.getElementById('round');
+var countryEl = document.getElementById('country');
+var answersEl = document.getElementById('answers');
+var feedbackEl = document.getElementById('feedback');
+var progressBar = document.getElementById('progressBar');
+var qtimerBar = document.getElementById('qtimerBar');
+var startScreen = document.getElementById('startScreen');
+var quizScreen = document.getElementById('quizScreen');
+var endScreenEl = document.getElementById('endScreen');
+var finalScoreEl = document.getElementById('finalScore');
+var finalDetailEl = document.getElementById('finalDetail');
+var newBestEl = document.getElementById('newBest');
+
+try { best = Math.max(0, parseInt(localStorage.getItem('capitals.best') || '0', 10) || 0); } catch (e) {}
+document.getElementById('startBest').textContent = best;
+bestEl.textContent = best;
+
+/* ---- audio ---- */
+var actx = null;
+function ac() {
+  if (window.AAA && AAA.ensureAudio) { try { return AAA.ensureAudio(); } catch (e) {} }
+  if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+  if (actx && actx.state === 'suspended') actx.resume();
+  return actx;
+}
+function tone(f, d, type, vol, at) {
+  var c = ac(); if (!c) return;
+  try {
+    var t = c.currentTime + (at || 0);
+    var o = c.createOscillator(), g = c.createGain();
+    o.type = type || 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol || 0.06, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g); g.connect(c.destination);
+    o.start(t); o.stop(t + d + 0.03);
+  } catch (e) {}
+}
+var sfxCorrect = function (st) { var b = 520 + Math.min(st, 8) * 30; tone(b, .1, 'triangle', .07); tone(b * 1.5, .14, 'sine', .05, .07); };
+var sfxWrong = function () { tone(200, .22, 'sawtooth', .05); tone(140, .3, 'sawtooth', .05, .08); };
+var sfxTick = function () { tone(880, .04, 'square', .022); };
+var sfxFinish = function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, .18, 'triangle', .06, i * .09); }); };
+
+function shuffle(arr) {
+  for (var i = arr.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return arr;
+}
+
+function startGame() {
+  pool = shuffle(DATA.slice());
+  qIndex = 0; score = 0; streak = 0; bestStreak = 0; correctCount = 0;
+  startScreen.style.display = 'none';
+  endScreenEl.style.display = 'none';
+  quizScreen.style.display = '';
+  updateStats();
+  nextQuestion();
+}
+
+function updateStats() {
+  scoreEl.textContent = score;
+  streakEl.textContent = streak;
+  bestEl.textContent = best;
+  roundEl.textContent = qIndex + ' / ' + QUESTIONS_PER_GAME;
+  progressBar.style.width = (qIndex / QUESTIONS_PER_GAME * 100) + '%';
+}
+
+function qTick() {
+  if (locked) return;
+  var left = Math.max(0, QUESTION_TIME - (performance.now() - qStart));
+  qLeft = left;
+  qtimerBar.style.transform = 'scaleX(' + (left / QUESTION_TIME).toFixed(3) + ')';
+  var whole = Math.ceil(left / 1000);
+  if (whole <= 3 && whole !== qTick._last) { qTick._last = whole; sfxTick(); }
+  if (left <= 0) { answer(null, null, currentCapital); return; }
+  qRaf = requestAnimationFrame(qTick);
+}
+
+var currentCapital = '';
+
+function nextQuestion() {
+  if (qIndex >= QUESTIONS_PER_GAME) { endGame(); return; }
+  locked = false;
+  var entry = pool[qIndex];
+  var country = entry[0];
+  var capital = entry[1];
+  currentCapital = capital;
+
+  var wrong = [];
+  var candidates = shuffle(DATA.filter(function (e) { return e[1] !== capital; }));
+  for (var i = 0; i < candidates.length && wrong.length < 3; i++) {
+    if (wrong.indexOf(candidates[i][1]) === -1) wrong.push(candidates[i][1]);
+  }
+  var options = shuffle([capital].concat(wrong));
+
+  countryEl.textContent = country;
+  feedbackEl.textContent = '';
+  feedbackEl.className = 'feedback';
+  answersEl.innerHTML = '';
+
+  options.forEach(function (opt) {
+    var b = document.createElement('button');
+    b.className = 'btn';
+    b.textContent = opt;
+    b.addEventListener('click', function () { answer(b, opt, capital); });
+    answersEl.appendChild(b);
+  });
+  updateStats();
+
+  cancelAnimationFrame(qRaf);
+  qTick._last = -1;
+  qStart = performance.now();
+  qtimerBar.style.transform = 'scaleX(1)';
+  qRaf = requestAnimationFrame(qTick);
+}
+
+function answer(btn, chosen, correct) {
+  if (locked) return;
+  locked = true;
+  cancelAnimationFrame(qRaf);
+  var buttons = answersEl.querySelectorAll('.btn');
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].disabled = true;
+    if (buttons[i].textContent === correct) buttons[i].classList.add('correct');
+    else if (buttons[i] !== btn) buttons[i].classList.add('dim');
+  }
+
+  if (chosen === null) {
+    streak = 0;
+    feedbackEl.textContent = 'Time! It was ' + correct;
+    feedbackEl.className = 'feedback bad';
+    sfxWrong();
+  } else if (chosen === correct) {
+    correctCount++;
+    var speedBonus = Math.round((qLeft / QUESTION_TIME) * 15);
+    var streakBonus = streak * 2;
+    var pts = 10 + speedBonus + streakBonus;
+    score += pts;
+    streak++;
+    if (streak > bestStreak) bestStreak = streak;
+    feedbackEl.textContent = 'Correct! +' + pts + ' pts';
+    feedbackEl.className = 'feedback good';
+    sfxCorrect(streak);
+    if (btn && window.AAA) {
+      try {
+        var rc = btn.getBoundingClientRect();
+        AAA.burst(rc.left + rc.width / 2, rc.top + rc.height / 2, '#34d399', 10);
+      } catch (e) {}
+    }
+  } else {
+    if (btn) btn.classList.add('wrong');
+    streak = 0;
+    feedbackEl.textContent = 'Wrong — it is ' + correct;
+    feedbackEl.className = 'feedback bad';
+    sfxWrong();
+  }
+  qIndex++;
+  updateStats();
+  setTimeout(nextQuestion, chosen === correct ? 950 : 1700);
+}
+
+function endGame() {
+  cancelAnimationFrame(qRaf);
+  quizScreen.style.display = 'none';
+  endScreenEl.style.display = 'block';
+  var isBest = score > best;
+  if (isBest) {
+    best = score;
+    try { localStorage.setItem('capitals.best', String(best)); } catch (e) {}
+    bestEl.textContent = best;
+  }
+  newBestEl.hidden = !isBest || score === 0;
+  var msg;
+  var pct = correctCount / QUESTIONS_PER_GAME;
+  if (pct >= 0.9) msg = 'Geography master!';
+  else if (pct >= 0.6) msg = 'Well traveled!';
+  else if (pct >= 0.35) msg = 'Not bad — keep exploring.';
+  else msg = 'Time to study the map.';
+  finalScoreEl.textContent = score;
+  finalDetailEl.innerHTML = msg + '<br>' + correctCount + '/' + QUESTIONS_PER_GAME + ' correct &middot; best streak <b>' + bestStreak + '</b>';
+  sfxFinish();
+}
+
+document.getElementById('startBtn').addEventListener('click', startGame);
+document.getElementById('againBtn').addEventListener('click', startGame);
+window.addEventListener('keydown', function (e) {
+  if (e.repeat) return;
+  if ((e.key === ' ' || e.key === 'Enter') && quizScreen.style.display === 'none') { e.preventDefault(); startGame(); }
+  if ((e.key === 'r' || e.key === 'R') && endScreenEl.style.display !== 'none') startGame();
+});
+</script>
+
+<script src="../assets/aaa-arcade.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+MarsMoon community game imports
+=================================
+
+These standalone HTML5 games were copied as complete source files from https://github.com/NnopponS/100-games
+
+Copyright (c) 2026 Worapon Sangsasri (NnopponS). The upstream project is distributed under the MIT License. Each imported game folder contains its upstream MIT license notice in LICENSE.txt.
+
+The imported pages are standalone HTML files with inline CSS and JavaScript. They do not use iframe wrappers or remote game hosting.
