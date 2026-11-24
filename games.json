@@ -805,6 +805,67 @@
       "source": "https://github.com/NnopponS/100-games/blob/main/92-treasure-dive/index.html",
       "sourceLabel": "ORIGINAL SOURCE",
       "status": "LOCAL BUILD"
+    },
+    {
+      "id": "93-bug-squash",
+      "title": "Bug Squash",
+      "description": "A fast-paced arcade game about catching bugs on screen.",
+      "category": "arcade",
+      "tags": [
+        "arcade",
+        "reaction"
+      ],
+      "symbol": "🐞",
+      "path": "games/93-bug-squash/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/93-bug-squash/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "94-ghost-catch",
+      "title": "Ghost Catch",
+      "description": "Catch the wandering ghosts in a simple arcade challenge.",
+      "category": "arcade",
+      "tags": [
+        "arcade",
+        "casual"
+      ],
+      "symbol": "👻",
+      "path": "games/94-ghost-catch/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/94-ghost-catch/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "97-math-blocks",
+      "title": "Math Blocks",
+      "description": "Solve number puzzles using falling blocks.",
+      "category": "education",
+      "tags": [
+        "education",
+        "math",
+        "puzzle"
+      ],
+      "symbol": "🔢",
+      "path": "games/97-math-blocks/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/97-math-blocks/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "99-kite-flyer",
+      "title": "Kite Flyer",
+      "description": "Keep a kite aloft and guide it through the sky.",
+      "category": "casual",
+      "tags": [
+        "casual",
+        "arcade"
+      ],
+      "symbol": "🪁",
+      "path": "games/99-kite-flyer/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/99-kite-flyer/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
     }
   ]
 }

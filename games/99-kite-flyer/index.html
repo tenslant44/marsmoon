@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Kite Flyer</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    min-height:100vh;color:#fff;font-family:system-ui,-apple-system,sans-serif;
+    display:flex;align-items:center;justify-content:center;padding:12px;
+    background:
+      radial-gradient(900px 620px at 50% -10%, rgba(14,116,144,.4), transparent 60%),
+      radial-gradient(700px 500px at 92% 110%, rgba(12,50,80,.55), transparent 60%),
+      #082433;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .wrap{position:relative;width:min(620px,100%);display:flex;flex-direction:column;gap:9px}
+  .hud{
+    display:flex;justify-content:space-between;gap:8px;
+    background:rgba(10,42,66,.85);border:1px solid rgba(125,211,252,.3);
+    padding:9px 15px;border-radius:13px;font-weight:800;font-size:.92rem;
+    box-shadow:0 10px 28px rgba(0,0,0,.45);backdrop-filter:blur(6px);
+  }
+  .hud .lab{font-size:.56rem;letter-spacing:.14em;color:#7fa8c8;display:block;text-transform:uppercase}
+  .hud b{color:#fde047;font-variant-numeric:tabular-nums;text-shadow:0 0 10px rgba(253,224,71,.5)}
+  .hud .bb{color:#7dd3fc;text-shadow:0 0 10px rgba(125,211,252,.5)}
+  canvas{
+    width:100%;height:auto;aspect-ratio:600/420;border-radius:15px;display:block;
+    border:1px solid rgba(125,211,252,.35);touch-action:none;
+    box-shadow:0 20px 55px rgba(0,0,0,.6),0 0 50px -14px rgba(56,189,248,.3);
+  }
+  .ov{
+    position:absolute;inset:56px 0 0 0;border-radius:15px;z-index:5;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:22px;gap:14px;
+    background:radial-gradient(ellipse at 50% 40%, rgba(15,60,90,.55), rgba(6,20,32,.92) 75%);
+    backdrop-filter:blur(4px);transition:opacity .3s,visibility .3s;
+  }
+  .ov.hidden{opacity:0;visibility:hidden;pointer-events:none}
+  .title{
+    font-size:clamp(2rem,8vw,3rem);font-weight:900;letter-spacing:.04em;line-height:.95;
+    background:linear-gradient(180deg,#fff,#fde047 50%,#f97316);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 22px rgba(253,224,71,.45));
+  }
+  .title.hot{background:linear-gradient(180deg,#fff,#fda4af 55%,#dc2626);filter:drop-shadow(0 0 22px rgba(220,38,38,.45))}
+  .ov p{color:#c2ddf0;max-width:350px;font-size:.93rem;line-height:1.55}
+  .statline{display:flex;gap:18px;font-weight:800;font-size:1.02rem}
+  .statline b{color:#fde047}
+  .btn{
+    padding:13px 36px;border:none;border-radius:999px;cursor:pointer;font-family:inherit;
+    background:linear-gradient(135deg,#fde047,#fb923c);color:#2d1a00;
+    font-weight:900;font-size:1rem;letter-spacing:.05em;
+    box-shadow:0 12px 30px -8px rgba(253,224,71,.55),inset 0 1px 0 rgba(255,255,255,.5);
+    transition:transform .12s;
+  }
+  .btn:active{transform:scale(.96)}
+  .hint{font-size:.75rem;color:#6b93ab;font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hud">
+    <div><span class="lab">Score</span><b id="score">0</b></div>
+    <div><span class="lab">Rings</span><b class="bb" id="rings">0</b></div>
+    <div><span class="lab">Best</span><b id="best">0</b></div>
+  </div>
+  <canvas id="c" width="600" height="420"></canvas>
+  <div class="ov" id="ov">
+    <h1 class="title" id="ovT">KITE<br>FLYER</h1>
+    <p id="ovP">Hold your line against the wind! Glide through golden rings, ride the gust zones for bonus points, and steer clear of the crows.</p>
+    <div class="statline" id="ovStats" style="display:none"></div>
+    <button class="btn" id="startBtn">FLY THE KITE</button>
+    <div class="hint">Drag to steer · WASD / Arrows on desktop</div>
+  </div>
+</div>
+<script>
+(() => {
+  const c = document.getElementById('c'), ctx = c.getContext('2d');
+  const W = c.width, H = c.height, GROUND = H - 46;
+  const scoreEl = document.getElementById('score'), bestEl = document.getElementById('best'), ringsEl = document.getElementById('rings');
+  const ov = document.getElementById('ov'), ovT = document.getElementById('ovT'), ovP = document.getElementById('ovP'), ovStats = document.getElementById('ovStats'), startBtn = document.getElementById('startBtn');
+  const KID = { x: 78, y: GROUND - 16 };
+
+  let ac = null;
+  const audio = () => { const A = window.AudioContext || window.webkitAudioContext; if (!ac && A) ac = new A(); if (ac && ac.state === 'suspended') ac.resume().catch(()=>{}); return ac; };
+  const sfxOn = () => localStorage.getItem('aaa_sfx') !== '0';
+  function tone(f, d, type='sine', vol=0.06, slide=null){
+    if (!sfxOn()) return; const x = audio(); if (!x) return;
+    try {
+      const t = x.currentTime, o = x.createOscillator(), g = x.createGain();
+      o.type = type; o.frequency.setValueAtTime(f, t);
+      if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, slide), t + d);
+      g.gain.setValueAtTime(0.001, t); g.gain.linearRampToValueAtTime(vol, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0006, t + d);
+      o.connect(g); g.connect(x.destination); o.start(t); o.stop(t + d + 0.03);
+    } catch {}
+  }
+  const ringChime = n => { tone(660,.1,'triangle',.06,880); setTimeout(()=>tone(880+n*40,.14,'triangle',.06,1100),70); };
+
+  let best = Number(localStorage.getItem('kite_best') || 0);
+  bestEl.textContent = best;
+
+  let state = 'idle', kite = { x: 150, y: H/2 }, rings = [], birds = [], clouds = [], gusts = [], sparks = [];
+  let score = 0, ringCount = 0, spawnT = 0, gustT = 4, keys = {}, dragPos = null, hitFlash = 0;
+  for (let i = 0; i < 6; i++) clouds.push({ x: Math.random()*W, y: 30 + Math.random()*220, s: 22 + Math.random()*32, v: .3 + Math.random()*.5 });
+
+  function reset() {
+    kite = { x: 150, y: H * .55 };
+    rings = []; birds = []; gusts = []; sparks = []; score = 0; ringCount = 0; spawnT = .5; gustT = 3; hitFlash = 0;
+    scoreEl.textContent = '0'; ringsEl.textContent = '0';
+    state = 'play';
+    ov.classList.add('hidden');
+    audio();
+  }
+
+  let last = performance.now();
+  function loop(now) {
+    const dt = Math.min(.04, (now - last) / 1000);
+    last = now;
+    if (state === 'play') update(dt);
+    draw(now / 1000);
+    requestAnimationFrame(loop);
+  }
+
+  function update(dt) {
+    let dx = 0, dy = 0;
+    if (keys.ArrowLeft || keys.KeyA) dx -= 1;
+    if (keys.ArrowRight || keys.KeyD) dx += 1;
+    if (keys.ArrowUp || keys.KeyW) dy -= 1;
+    if (keys.ArrowDown || keys.KeyS) dy += 1;
+    if (dragPos) {
+      kite.x += (dragPos.x - kite.x) * Math.min(1, dt * 9);
+      kite.y += (dragPos.y - kite.y) * Math.min(1, dt * 9);
+    } else if (dx || dy) {
+      const m = Math.hypot(dx, dy);
+      kite.x += (dx/m) * 265 * dt;
+      kite.y += (dy/m) * 265 * dt;
+    }
+    // ambient drift + gust push
+    kite.x -= 12 * dt;
+    let inGust = false;
+    for (const g of gusts) {
+      if (kite.x > g.x && kite.x < g.x + g.w && kite.y > g.y && kite.y < g.y + g.h) {
+        inGust = true;
+        kite.y += g.vy * dt;
+        kite.x += 40 * dt;
+      }
+    }
+    if (!inGust) kite.y += Math.sin(last / 300) * 8 * dt;
+    kite.x = Math.max(26, Math.min(W - 26, kite.x));
+    kite.y = Math.max(26, Math.min(GROUND - 12, kite.y));
+    if (hitFlash > 0) hitFlash -= dt * 2;
+
+    score += dt * 5;
+    const disp = Math.floor(score);
+    scoreEl.textContent = disp;
+    if (disp > best) { best = disp; bestEl.textContent = best; localStorage.setItem('kite_best', String(best)); }
+
+    spawnT -= dt;
+    if (spawnT <= 0) {
+      if (Math.random() < .42) {
+        rings.push({ x: W + 30, y: 50 + Math.random()*(GROUND - 100), r: 20, spd: 165, ph: Math.random()*6 });
+      } else {
+        const flock = score > 120 && Math.random() < .3 ? 2 : 1;
+        const fy = 45 + Math.random()*(GROUND - 100);
+        for (let f = 0; f < flock; f++)
+          birds.push({ x: W + 30 + f * 34, y: fy + (f ? 22 : 0), r: 15, spd: 190 + Math.min(130, score * .5), ph: Math.random()*6 });
+      }
+      spawnT = Math.max(.42, .75 - score * .0006);
+    }
+    gustT -= dt;
+    if (gustT <= 0) {
+      const dir = Math.random() < .5 ? -1 : 1;
+      gusts.push({ x: W + 40, y: 60 + Math.random()*(GROUND - 170), w: 120 + Math.random()*80, h: 80 + Math.random()*50, vy: dir * 95, t: 9 });
+      gustT = 5 + Math.random() * 4;
+    }
+    for (let i = gusts.length - 1; i >= 0; i--) {
+      const g = gusts[i];
+      g.x -= 120 * dt; g.t -= dt;
+      if (g.x + g.w < -40 || g.t <= 0) gusts.splice(i, 1);
+    }
+
+    for (const cl of clouds) {
+      cl.x -= cl.s * cl.v * dt;
+      if (cl.x < -80) { cl.x = W + 80; cl.y = 30 + Math.random()*220; }
+    }
+
+    for (let i = rings.length - 1; i >= 0; i--) {
+      const rg = rings[i];
+      rg.x -= rg.spd * dt;
+      if (Math.hypot(kite.x - rg.x, kite.y - rg.y) < rg.r + 15) {
+        score += 25;
+        ringCount++;
+        ringsEl.textContent = ringCount;
+        ringChime(Math.min(8, ringCount));
+        for (let k = 0; k < 14; k++) {
+          const a = k / 14 * Math.PI * 2;
+          sparks.push({ x: rg.x, y: rg.y, vx: Math.cos(a)*130, vy: Math.sin(a)*130, t: .45, col: '#fde047' });
+        }
+        rings.splice(i, 1);
+      } else if (rg.x < -34) rings.splice(i, 1);
+    }
+
+    for (let i = birds.length - 1; i >= 0; i--) {
+      const b = birds[i];
+      b.x -= b.spd * dt;
+      b.y += Math.sin(last / 180 + b.ph) * 30 * dt;
+      if (Math.hypot(kite.x - b.x, kite.y - b.y) < b.r + 14) {
+        state = 'over';
+        hitFlash = 1;
+        tone(220, .4, 'sawtooth', .1, 70);
+        setTimeout(() => {
+          ovT.textContent = 'KITE DOWN!';
+          ovT.classList.add('hot');
+          ovP.innerHTML = 'A crow clipped your line.';
+          ovStats.style.display = 'flex';
+          ovStats.innerHTML = `<div>Score <b>${Math.floor(score)}</b></div><div>Rings <b>${ringCount}</b></div><div>Best <b>${best}</b></div>`;
+          startBtn.textContent = 'FLY AGAIN';
+          ov.classList.remove('hidden');
+        }, 550);
+        return;
+      }
+      if (b.x < -34) birds.splice(i, 1);
+    }
+    for (let i = sparks.length - 1; i >= 0; i--) {
+      const s = sparks[i];
+      s.x += s.vx * dt; s.y += s.vy * dt; s.vy += 240 * dt; s.t -= dt;
+      if (s.t <= 0) sparks.splice(i, 1);
+    }
+  }
+
+  // ---------- drawn sprites ----------
+  function drawCrow(b, t) {
+    const flap = Math.sin(t * 16 + b.ph) * .8;
+    ctx.save(); ctx.translate(b.x, b.y);
+    ctx.fillStyle = '#1f2937';
+    // wings
+    ctx.save(); ctx.rotate(-.15 - flap * .35);
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(-16, -14, -30, -8); ctx.quadraticCurveTo(-18, 0, -2, 4); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    ctx.save(); ctx.rotate(.15 + flap * .35);
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(16, -14, 30, -8); ctx.quadraticCurveTo(18, 0, 2, 4); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    // body + head + beak
+    ctx.beginPath(); ctx.ellipse(0, 0, 12, 6.5, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(-11, -3, 5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath(); ctx.moveTo(-15, -3); ctx.lineTo(-21, -1); ctx.lineTo(-15, 1); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#fca5a5';
+    ctx.beginPath(); ctx.arc(-12, -4.5, 1.2, 0, Math.PI*2); ctx.fill();
+    // tail
+    ctx.fillStyle = '#111827';
+    ctx.beginPath(); ctx.moveTo(11, 0); ctx.lineTo(19, -4); ctx.lineTo(19, 4); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawKid(t) {
+    ctx.save(); ctx.translate(KID.x, KID.y);
+    const run = Math.sin(t * 7) * 3;
+    // legs
+    ctx.strokeStyle = '#1e3a5f'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(0, 10); ctx.lineTo(-5 - run, 26); ctx.moveTo(0, 10); ctx.lineTo(5 + run, 26); ctx.stroke();
+    // body
+    ctx.fillStyle = '#f43f5e';
+    ctx.beginPath(); ctx.roundRect(-6, -6, 12, 18, 5); ctx.fill();
+    // arm up to string
+    ctx.strokeStyle = '#fcd7b0'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(4, -2); ctx.lineTo(14, -12); ctx.stroke();
+    // head + cap
+    ctx.fillStyle = '#fcd7b0';
+    ctx.beginPath(); ctx.arc(0, -12, 7, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath(); ctx.arc(0, -14, 7, Math.PI, 0); ctx.fill();
+    ctx.fillRect(-1, -21, 10, 4);
+    ctx.restore();
+  }
+
+  function drawKite(t) {
+    const dx = kite.x - KID.x - 14, dy = kite.y - (KID.y - 12);
+    const ang = Math.atan2(dy, dx);
+    const slack = Math.min(60, Math.hypot(dx, dy) * .12);
+    // string (sagging bezier)
+    ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(KID.x + 14, KID.y - 12);
+    ctx.quadraticCurveTo(
+      (KID.x + kite.x) / 2, (KID.y + kite.y) / 2 + slack,
+      kite.x - Math.cos(ang) * 20, kite.y - Math.sin(ang) * 20
+    );
+    ctx.stroke();
+    // tail bows along string
+    for (let i = 1; i <= 4; i++) {
+      const tt = i / 5;
+      const bx = (1-tt)*(1-tt)*(KID.x+14) + 2*(1-tt)*tt*((KID.x+kite.x)/2) + tt*tt*(kite.x - Math.cos(ang)*20);
+      const by = (1-tt)*(1-tt)*(KID.y-12) + 2*(1-tt)*tt*((KID.y+kite.y)/2+slack) + tt*tt*(kite.y - Math.sin(ang)*20);
+      ctx.save(); ctx.translate(bx, by); ctx.rotate(ang + Math.sin(t * 6 + i) * .3);
+      ctx.fillStyle = ['#f472b6','#fbbf24','#4ade80','#60a5fa'][i % 4];
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-7, -4); ctx.lineTo(-7, 4); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(7, -4); ctx.lineTo(7, 4); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+    // kite diamond
+    ctx.save(); ctx.translate(kite.x, kite.y); ctx.rotate(ang + Math.PI/2 + Math.sin(t * 3) * .12);
+    ctx.shadowColor = 'rgba(244,63,94,.6)'; ctx.shadowBlur = 14;
+    ctx.beginPath();
+    ctx.moveTo(0, -20); ctx.lineTo(16, 0); ctx.lineTo(0, 24); ctx.lineTo(-16, 0);
+    ctx.closePath();
+    const kg = ctx.createLinearGradient(-16, -20, 16, 24);
+    kg.addColorStop(0, '#f43f5e'); kg.addColorStop(.5, '#fb7185'); kg.addColorStop(.5, '#fde047'); kg.addColorStop(1, '#facc15');
+    ctx.fillStyle = kg; ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#fef2f2'; ctx.lineWidth = 1.6; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, -20); ctx.lineTo(0, 24); ctx.moveTo(-16, 0); ctx.lineTo(16, 0); ctx.stroke();
+    ctx.restore();
+  }
+
+  function draw(t) {
+    // sky
+    const sky = ctx.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0, '#0369a1'); sky.addColorStop(.55, '#38bdf8'); sky.addColorStop(1, '#bae6fd');
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+    // sun
+    const sunG = ctx.createRadialGradient(W - 80, 52, 8, W - 80, 52, 46);
+    sunG.addColorStop(0, 'rgba(254,240,138,.95)'); sunG.addColorStop(1, 'rgba(254,240,138,0)');
+    ctx.fillStyle = sunG;
+    ctx.beginPath(); ctx.arc(W - 80, 52, 46, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath(); ctx.arc(W - 80, 52, 22, 0, Math.PI*2); ctx.fill();
+
+    // clouds
+    for (const cl of clouds) {
+      ctx.fillStyle = 'rgba(255,255,255,.8)';
+      ctx.beginPath();
+      ctx.arc(cl.x, cl.y, cl.s * .8, 0, Math.PI*2);
+      ctx.arc(cl.x + cl.s * .8, cl.y - cl.s * .25, cl.s * .6, 0, Math.PI*2);
+      ctx.arc(cl.x + cl.s * 1.5, cl.y + cl.s * .05, cl.s * .55, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    // gust zones
+    for (const g of gusts) {
+      ctx.save();
+      ctx.globalAlpha = .25 + .1 * Math.sin(t * 5);
+      const gg = ctx.createLinearGradient(g.x, g.y, g.x + g.w, g.y);
+      gg.addColorStop(0, 'rgba(224,242,254,0)');
+      gg.addColorStop(.5, 'rgba(224,242,254,.5)');
+      gg.addColorStop(1, 'rgba(224,242,254,0)');
+      ctx.fillStyle = gg;
+      ctx.beginPath(); ctx.roundRect(g.x, g.y, g.w, g.h, 30); ctx.fill();
+      // swirl arrows
+      ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+      for (let i = 0; i < 3; i++) {
+        const sx = g.x + ((t * 90 + i * 60) % (g.w + 40)) - 20;
+        const sy = g.y + g.h / 2 + Math.sin(sx * .05 + t * 3) * g.h * .3;
+        ctx.beginPath();
+        ctx.moveTo(sx - 12, sy);
+        ctx.quadraticCurveTo(sx, sy - (g.vy > 0 ? 8 : -8), sx + 12, sy);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // hills + grass
+    ctx.fillStyle = '#15803d';
+    ctx.beginPath();
+    ctx.moveTo(0, H);
+    ctx.quadraticCurveTo(W * .2, GROUND - 34, W * .45, GROUND - 8);
+    ctx.quadraticCurveTo(W * .7, GROUND + 8, W, GROUND - 22);
+    ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#166534';
+    ctx.beginPath();
+    ctx.moveTo(0, H); ctx.quadraticCurveTo(W * .55, GROUND + 4, W, GROUND + 2);
+    ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
+    // flowers
+    for (let i = 0; i < 12; i++) {
+      const fx = 30 + i * 48 + Math.sin(i * 7) * 12;
+      const fy = GROUND + 16 + Math.sin(i * 3) * 10;
+      ctx.fillStyle = ['#f472b6','#fde047','#fff'][i % 3];
+      ctx.beginPath(); ctx.arc(fx, fy, 2.6, 0, Math.PI*2); ctx.fill();
+    }
+
+    drawKid(t);
+
+    // rings
+    for (const rg of rings) {
+      const pulse = 1 + Math.sin(t * 6 + rg.ph) * .08;
+      ctx.save(); ctx.translate(rg.x, rg.y);
+      ctx.strokeStyle = 'rgba(253,224,71,.35)'; ctx.lineWidth = 9;
+      ctx.beginPath(); ctx.arc(0, 0, rg.r * pulse, 0, Math.PI*2); ctx.stroke();
+      ctx.strokeStyle = '#fde047'; ctx.lineWidth = 4.5;
+      ctx.shadowColor = '#fde047'; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.arc(0, 0, rg.r * pulse, 0, Math.PI*2); ctx.stroke();
+      ctx.shadowBlur = 0;
+      // rotating sparkles on ring
+      for (let i = 0; i < 4; i++) {
+        const a = t * 2 + rg.ph + i * Math.PI / 2;
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(Math.cos(a) * rg.r * pulse, Math.sin(a) * rg.r * pulse, 2, 0, Math.PI*2); ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    for (const b of birds) drawCrow(b, t);
+    drawKite(t);
+
+    for (const s of sparks) {
+      ctx.globalAlpha = Math.min(1, s.t * 2.4);
+      ctx.fillStyle = s.col;
+      ctx.beginPath(); ctx.arc(s.x, s.y, 3, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    if (hitFlash > 0) {
+      ctx.fillStyle = `rgba(220,38,38,${hitFlash * .18})`;
+      ctx.fillRect(0, 0, W, H);
+    }
+  }
+
+  window.addEventListener('keydown', e => {
+    keys[e.code] = true;
+    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
+    if (e.code === 'Enter' && state !== 'play') startBtn.click();
+  });
+  window.addEventListener('keyup', e => { keys[e.code] = false; });
+  const setDrag = e => {
+    const r = c.getBoundingClientRect();
+    dragPos = { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height };
+  };
+  c.addEventListener('pointerdown', e => { e.preventDefault(); c.setPointerCapture(e.pointerId); setDrag(e); });
+  c.addEventListener('pointermove', e => { if (dragPos) setDrag(e); });
+  window.addEventListener('pointerup', () => dragPos = null);
+  window.addEventListener('pointercancel', () => dragPos = null);
+  startBtn.onclick = () => { ovT.classList.remove('hot'); ovStats.style.display = 'none'; reset(); };
+  draw(0);
+  requestAnimationFrame(loop);
+})();
+</script>
+
+<script src="../assets/aaa-arcade.js" defer></script>
+</body>
+</html>
