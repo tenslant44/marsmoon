@@ -499,6 +499,81 @@
       "source": "https://github.com/NnopponS/100-games/blob/main/44-fishing/index.html",
       "sourceLabel": "ORIGINAL SOURCE",
       "status": "LOCAL BUILD"
+    },
+    {
+      "id": "47-basketball",
+      "title": "Basketball Shootout",
+      "description": "Aim and time your shots in a basketball challenge.",
+      "category": "sports",
+      "tags": [
+        "sports",
+        "arcade"
+      ],
+      "symbol": "🏀",
+      "path": "games/47-basketball/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/47-basketball/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "55-balloon-pop",
+      "title": "Balloon Pop",
+      "description": "Pop the balloons as they appear on screen.",
+      "category": "casual",
+      "tags": [
+        "casual",
+        "arcade"
+      ],
+      "symbol": "🎈",
+      "path": "games/55-balloon-pop/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/55-balloon-pop/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "57-button-masher",
+      "title": "Button Masher",
+      "description": "A quick button-pressing score challenge.",
+      "category": "arcade",
+      "tags": [
+        "arcade",
+        "reaction"
+      ],
+      "symbol": "🕹️",
+      "path": "games/57-button-masher/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/57-button-masher/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "58-rhythm-tap",
+      "title": "Rhythm Tap",
+      "description": "Tap along to the rhythm and keep your timing.",
+      "category": "music",
+      "tags": [
+        "music",
+        "rhythm"
+      ],
+      "symbol": "🥁",
+      "path": "games/58-rhythm-tap/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/58-rhythm-tap/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "60-math-sprint",
+      "title": "Math Sprint",
+      "description": "Solve quick arithmetic questions against the clock.",
+      "category": "education",
+      "tags": [
+        "education",
+        "math"
+      ],
+      "symbol": "➗",
+      "path": "games/60-math-sprint/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/60-math-sprint/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
     }
   ]
 }
