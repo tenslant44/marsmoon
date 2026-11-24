@@ -1,7 +1,43 @@
-const grid=document.querySelector("#gameGrid"),search=document.querySelector("#search"),filters=document.querySelector("#filters"),count=document.querySelector("#gameCount");
-let games=[],active="all";
-const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-function render(){const q=search.value.trim().toLowerCase();const shown=games.filter(g=>(active==="all"||g.category===active)&&(!q||[g.title,g.description,g.category,...(g.tags||[])].join(" ").toLowerCase().includes(q)));count.textContent=String(shown.length).padStart(2,"0")+" / "+String(games.length).padStart(2,"0")+" GAMES";grid.innerHTML=shown.length?shown.map(g=>`<article class="game-card"><div class="cover ${esc(g.theme)}"><span class="cover-symbol">${esc(g.symbol)}</span></div><div class="card-body"><div class="card-top"><span class="tag">${esc(g.category)}</span><span class="status">${esc(g.status||"READY")}</span></div><h3>${esc(g.title)}</h3><p>${esc(g.description)}</p><div class="card-actions"><a class="play" href="${esc(g.path)}">PLAY NOW ↗</a><a class="source" href="${esc(g.source)}" target="_blank" rel="noreferrer">SOURCE ↗</a></div></div></article>`).join(""):'<div class="empty">NO MATCHES IN THIS SECTOR.</div>'}
-filters.addEventListener("click",e=>{const b=e.target.closest("button[data-filter]");if(!b)return;active=b.dataset.filter;filters.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===b));render()});
+var grid=document.getElementById("gameGrid");
+var search=document.getElementById("search");
+var filters=document.getElementById("filters");
+var count=document.getElementById("gameCount");
+var games=[];
+var active="all";
+var categories=[
+ ["all","ALL GAMES"],["racing","RACING"],["platformer","PLATFORMERS"],
+ ["party","PARTY"],["arcade","ARCADE"],["action","ACTION"],
+ ["adventure","ADVENTURE"],["websim","WEBSIM"],["collection","COLLECTIONS"]
+];
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function makeFilters(){
+ filters.innerHTML=categories.map(function(c){
+  return '<a href="#" class="filter'+(c[0]===active?' active':'')+'" data-filter="'+c[0]+'">'+c[1]+'</a>';
+ }).join(" ");
+}
+function render(){
+ var q=search.value.toLowerCase().replace(/^\s+|\s+$/g,"");
+ var shown=games.filter(function(g){
+  var categoryOk=active==="all"||String(g.category).toLowerCase()===active;
+  var hay=[g.title,g.description,g.category].concat(g.tags||[]).join(" ").toLowerCase();
+  return categoryOk&&(!q||hay.indexOf(q)!==-1);
+ });
+ count.innerHTML="("+shown.length+" OF "+games.length+" GAMES)";
+ if(!shown.length){grid.innerHTML='<div class="empty">NO GAMES FOUND. TRY ANOTHER SEARCH.</div>';return;}
+ grid.innerHTML=shown.map(function(g){
+  var cover=g.thumbnail?'<img src="'+esc(g.thumbnail)+'" alt="'+esc(g.title)+' screenshot">':'<div class="no-image">'+esc(g.symbol||"★")+'</div>';
+  return '<div class="game-card"><a class="cover" href="'+esc(g.path)+'">'+cover+'</a>'+
+   '<div class="game-info"><div class="game-meta"><span>'+esc(String(g.category||"game").toUpperCase())+'</span><span>'+esc(g.status||"AVAILABLE")+'</span></div>'+
+   '<h3><a href="'+esc(g.path)+'">'+esc(g.title)+'</a></h3><p>'+esc(g.description)+'</p>'+
+   '<div class="game-actions"><a class="play-link" href="'+esc(g.path)+'">PLAY GAME &gt;&gt;</a> <a class="source-link" href="'+esc(g.source||"#")+'" target="_blank">SOURCE</a></div></div></div>';
+ }).join("");
+}
+filters.addEventListener("click",function(e){
+ var a=e.target.closest("a[data-filter]");if(!a)return;e.preventDefault();
+ active=a.getAttribute("data-filter");makeFilters();render();
+});
 search.addEventListener("input",render);
-fetch("./games.json").then(r=>{if(!r.ok)throw Error("catalogue unavailable");return r.json()}).then(d=>{games=d.games||[];const cats=[...new Set(games.map(g=>g.category).filter(Boolean))];filters.innerHTML='<button class="filter active" data-filter="all">All</button>'+cats.map(c=>'<button class="filter" data-filter="'+esc(c)+'">'+esc(c[0].toUpperCase()+c.slice(1))+'</button>').join("");render();document.querySelector("#footerStatus").textContent="LIBRARY LOADED"}).catch(()=>{grid.innerHTML='<div class="empty">THE LIBRARY COULD NOT BE LOADED. CHECK THE GAMES.JSON FILE.</div>';count.textContent="OFFLINE"});
+document.getElementById("clearSearch").addEventListener("click",function(){search.value="";active="all";makeFilters();render();search.focus();});
+fetch("games.json").then(function(r){if(!r.ok)throw new Error("catalogue unavailable");return r.json();}).then(function(d){
+ games=d.games||[];makeFilters();render();document.getElementById("footerStatus").innerHTML="STATUS: ARCHIVE LOADED";
+}).catch(function(){grid.innerHTML='<div class="empty">THE ARCHIVE COULD NOT BE LOADED. PLEASE TRY AGAIN LATER.</div>';count.innerHTML="OFFLINE";});
