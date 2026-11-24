@@ -67,6 +67,21 @@
       "path": "games/bopimo-web-builds/index.html",
       "source": "https://github.com/tenslant44/BopimoWebBuilds",
       "status": "SOURCE COLLECTION"
+    },
+    {
+      "id": "russian-fortnite",
+      "title": "Russian Fortnite",
+      "description": "V3. Try it out.",
+      "category": "websim",
+      "tags": [
+        "3D",
+        "Gore",
+        "WebSim"
+      ],
+      "symbol": "🪆",
+      "path": "games/russianv3-main/index.html",
+      "status": "AVAILABLE",
+      "thumbnail": "games/russianv3-main /RussianFlagGIF.gif"
     }
   ]
 }
