@@ -272,6 +272,82 @@
       "source": "https://github.com/NnopponS/100-games/blob/main/19-stack-tower/index.html",
       "sourceLabel": "ORIGINAL SOURCE",
       "status": "LOCAL BUILD"
+    },
+    {
+      "id": "25-maze-runner",
+      "title": "Maze Runner",
+      "description": "Find your way through a generated maze.",
+      "category": "puzzle",
+      "tags": [
+        "puzzle",
+        "maze"
+      ],
+      "symbol": "🧩",
+      "path": "games/25-maze-runner/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/25-maze-runner/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "27-typing-racer",
+      "title": "Typing Racer",
+      "description": "Race by typing the displayed text accurately.",
+      "category": "word",
+      "tags": [
+        "typing",
+        "word",
+        "racing"
+      ],
+      "symbol": "⌨️",
+      "path": "games/27-typing-racer/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/27-typing-racer/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "28-rock-paper-scissors",
+      "title": "Rock Paper Scissors",
+      "description": "Play the classic hand game against the computer.",
+      "category": "board",
+      "tags": [
+        "board",
+        "casual"
+      ],
+      "symbol": "✊",
+      "path": "games/28-rock-paper-scissors/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/28-rock-paper-scissors/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "29-guess-number",
+      "title": "Guess the Number",
+      "description": "Use hints to find the hidden number.",
+      "category": "puzzle",
+      "tags": [
+        "puzzle",
+        "numbers"
+      ],
+      "symbol": "🔢",
+      "path": "games/29-guess-number/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/29-guess-number/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "31-sliding-puzzle",
+      "title": "Sliding Puzzle",
+      "description": "Slide numbered tiles into the correct order.",
+      "category": "puzzle",
+      "tags": [
+        "puzzle",
+        "tiles"
+      ],
+      "symbol": "🔲",
+      "path": "games/31-sliding-puzzle/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/31-sliding-puzzle/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
     }
   ]
 }
