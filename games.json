@@ -348,6 +348,82 @@
       "source": "https://github.com/NnopponS/100-games/blob/main/31-sliding-puzzle/index.html",
       "sourceLabel": "ORIGINAL SOURCE",
       "status": "LOCAL BUILD"
+    },
+    {
+      "id": "32-lights-out",
+      "title": "Lights Out",
+      "description": "Switch the lights off by solving the tile pattern.",
+      "category": "puzzle",
+      "tags": [
+        "puzzle",
+        "logic"
+      ],
+      "symbol": "💡",
+      "path": "games/32-lights-out/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/32-lights-out/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "33-sudoku",
+      "title": "Sudoku",
+      "description": "Complete the number grid without repeating values.",
+      "category": "puzzle",
+      "tags": [
+        "puzzle",
+        "numbers",
+        "logic"
+      ],
+      "symbol": "9️⃣",
+      "path": "games/33-sudoku/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/33-sudoku/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "36-gomoku",
+      "title": "Gomoku",
+      "description": "Connect five pieces in a row to win.",
+      "category": "board",
+      "tags": [
+        "board",
+        "strategy"
+      ],
+      "symbol": "⚫",
+      "path": "games/36-gomoku/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/36-gomoku/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "37-checkers",
+      "title": "Checkers",
+      "description": "Play a classic checkers match against the computer.",
+      "category": "board",
+      "tags": [
+        "board",
+        "strategy"
+      ],
+      "symbol": "♟️",
+      "path": "games/37-checkers/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/37-checkers/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "39-air-hockey",
+      "title": "Air Hockey",
+      "description": "Play a fast air-hockey match against an AI opponent.",
+      "category": "sports",
+      "tags": [
+        "sports",
+        "arcade"
+      ],
+      "symbol": "🏒",
+      "path": "games/39-air-hockey/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/39-air-hockey/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
     }
   ]
 }
