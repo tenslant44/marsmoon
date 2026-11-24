@@ -1,0 +1,31 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MarsMoon - Add a Game</title><link rel="stylesheet" href="style.css">
+<style>
+.add-wrap{padding:14px}.add-wrap h1{font: bold 25px Arial;margin:4px 0 8px}.add-wrap p{line-height:1.55}.add-form{width:100%;background:#f4f4f4;border:2px ridge #aaa;padding:12px}.add-form label{display:block;font-weight:bold;margin:10px 0 4px}.add-form input,.add-form textarea,.add-form select{width:100%;padding:7px;border:2px inset #ddd;font:13px Arial}.add-form textarea{min-height:65px}.add-form .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.action-btn{padding:8px 13px;margin:8px 5px 0 0;border:2px outset #fff;background:#ffcc00;font-weight:bold;cursor:pointer}.output{width:100%;min-height:220px;font:12px "Courier New",monospace}.note{background:#fff8d9;border:1px solid #c6a93a;padding:9px;margin:12px 0;line-height:1.5}@media(max-width:600px){.add-form .row{grid-template-columns:1fr}}
+</style></head><body><center><table class="site" cellpadding="0" cellspacing="0" border="0"><tr><td>
+<table class="masthead" width="100%" cellpadding="10"><tr><td><a href="index.html"><font size="5" color="white"><b>MARS<span class="moon">MOON</span></b></font></a></td><td align="right"><a href="index.html">BACK TO LIBRARY</a></td></tr></table>
+<div class="add-wrap"><h1>ADD A GAME</h1><p>Fill this in, download the updated catalogue, and replace the old <code>games.json</code> in your MarsMoon repository.</p>
+<div class="note"><b>STEP 1:</b> Load your current <code>games.json</code> so existing games are preserved.</div>
+<label><b>Current catalogue:</b> <input type="file" id="catalogFile" accept=".json,application/json"></label>
+<form class="add-form" id="gameForm">
+<div class="row"><div><label for="title">Game title *</label><input id="title" required placeholder="My new game"></div><div><label for="category">Category *</label><select id="category"><option value="arcade">Arcade</option><option value="action">Action</option><option value="adventure">Adventure</option><option value="racing">Racing</option><option value="platformer">Platformer</option><option value="party">Party</option><option value="websim">WebSim</option><option value="collection">Collection</option><option value="other">Other</option></select></div></div>
+<label for="description">Description *</label><textarea id="description" required placeholder="Describe the game"></textarea>
+<div class="row"><div><label for="path">Playable page URL or local path *</label><input id="path" required placeholder="games/my-game/index.html"></div><div><label for="thumbnail">Thumbnail URL/path (optional)</label><input id="thumbnail" placeholder="games/my-game/cover.png"></div></div>
+<div class="row"><div><label for="source">Source link (optional)</label><input id="source" placeholder="https://github.com/user/game"></div><div><label for="symbol">Fallback symbol</label><input id="symbol" maxlength="8" value="★"></div></div>
+<label for="tags">Search tags (comma-separated)</label><input id="tags" placeholder="3d, multiplayer, websim">
+<button class="action-btn" type="submit">ADD GAME</button><button class="action-btn" type="button" id="download">DOWNLOAD games.json</button><button class="action-btn" type="button" id="copy">COPY JSON</button></form>
+<h2>Updated catalogue preview</h2><textarea id="output" class="output" readonly spellcheck="false"></textarea>
+<div class="note"><b>STEP 2:</b> Download the JSON and upload it to the root of <code>tenslant44/marsmoon</code>, replacing the existing file. For a local game, upload its entire folder into <code>games/your-game-id/</code> first. For a hosted game, use its actual playable webpage URL, not a raw GitHub HTML or jsDelivr HTML URL.</div>
+<p><a href="https://github.com/tenslant44/marsmoon">Open MarsMoon on GitHub</a> | <a href="index.html">Return to library</a></p></div></td></tr></table></center>
+<script>
+(function(){
+var catalog={games:[]},output=document.getElementById("output"),form=document.getElementById("gameForm");
+function show(){output.value=JSON.stringify(catalog,null,2);}
+document.getElementById("catalogFile").addEventListener("change",function(e){var file=e.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(){try{var parsed=JSON.parse(reader.result);if(!Array.isArray(parsed.games))throw Error();catalog=parsed;show();alert("Loaded "+catalog.games.length+" games.");}catch(err){alert("That is not a valid games.json file.");}};reader.readAsText(file);});
+form.addEventListener("submit",function(e){e.preventDefault();var title=document.getElementById("title").value.trim(),id=title.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");if(!id){alert("Enter a title.");return;}if(catalog.games.some(function(g){return g.id===id;})){alert("That game ID already exists.");return;}
+var game={id:id,title:title,description:document.getElementById("description").value.trim(),category:document.getElementById("category").value,tags:document.getElementById("tags").value.split(",").map(function(x){return x.trim();}).filter(Boolean),symbol:document.getElementById("symbol").value.trim()||"★",path:document.getElementById("path").value.trim(),status:"AVAILABLE"};
+var thumb=document.getElementById("thumbnail").value.trim(),source=document.getElementById("source").value.trim();if(thumb)game.thumbnail=thumb;if(source)game.source=source;catalog.games.push(game);show();form.reset();document.getElementById("symbol").value="★";alert("Added "+title+". Download games.json when finished.");});
+document.getElementById("download").addEventListener("click",function(){var blob=new Blob([JSON.stringify(catalog,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="games.json";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);});
+document.getElementById("copy").addEventListener("click",function(){output.select();try{document.execCommand("copy");alert("JSON copied.");}catch(e){alert("Select and copy the preview manually.");}});show();
+})();
+</script></body></html>
