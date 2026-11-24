@@ -424,6 +424,81 @@
       "source": "https://github.com/NnopponS/100-games/blob/main/39-air-hockey/index.html",
       "sourceLabel": "ORIGINAL SOURCE",
       "status": "LOCAL BUILD"
+    },
+    {
+      "id": "40-catch-falling",
+      "title": "Catch Falling Items",
+      "description": "Move your basket to catch the falling objects.",
+      "category": "arcade",
+      "tags": [
+        "arcade",
+        "catch"
+      ],
+      "symbol": "🧺",
+      "path": "games/40-catch-falling/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/40-catch-falling/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "41-dodger",
+      "title": "Dodger",
+      "description": "Move through the field and avoid incoming obstacles.",
+      "category": "arcade",
+      "tags": [
+        "arcade",
+        "reflex"
+      ],
+      "symbol": "💨",
+      "path": "games/41-dodger/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/41-dodger/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "42-endless-runner",
+      "title": "Endless Runner",
+      "description": "Keep moving through an endless obstacle course.",
+      "category": "arcade",
+      "tags": [
+        "arcade",
+        "runner"
+      ],
+      "symbol": "🏃",
+      "path": "games/42-endless-runner/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/42-endless-runner/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "43-ski-slope",
+      "title": "Ski Slope",
+      "description": "Steer down a snowy slope while avoiding obstacles.",
+      "category": "sports",
+      "tags": [
+        "sports",
+        "arcade"
+      ],
+      "symbol": "⛷️",
+      "path": "games/43-ski-slope/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/43-ski-slope/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "44-fishing",
+      "title": "Fishing Frenzy",
+      "description": "A relaxed arcade fishing game.",
+      "category": "casual",
+      "tags": [
+        "casual",
+        "arcade"
+      ],
+      "symbol": "🎣",
+      "path": "games/44-fishing/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/44-fishing/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
     }
   ]
 }
