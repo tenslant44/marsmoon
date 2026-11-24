@@ -1,37 +1,57 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#11151b">
-<meta name="description" content="MarsMoon — a portable, open-source shelf of browser games.">
-<title>MarsMoon — Play anywhere</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2311151b'/%3E%3Cpath d='M15 42 25 17l8 16 8-16 9 25h-9l-4-12-4 8h-7l-4-8-3 12z' fill='%23c7ff57'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="./style.css">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MarsMoon Game Archive</title>
+<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-<header class="topbar">
-  <a class="brand" href="./"><span class="brand-mark">M</span><span>MARS<span class="brand-muted">MOON</span></span></a>
-  <nav><a class="active" href="#games">Games</a><a href="#about">About</a><a href="https://github.com/tenslant44/marsmoon" target="_blank" rel="noreferrer">Source ↗</a></nav>
-</header>
-<main>
-  <section class="hero">
-    <div class="hero-copy">
-      <div class="eyebrow"><span class="pulse"></span> OPEN SOURCE · PORTABLE · PLAYER-OWNED</div>
-      <h1>Your games.<br><em>Out there.</em></h1>
-      <p>A small home for browser games and experiments. Download the project, share it, host it, or keep a copy for later.</p>
-      <a class="primary" href="#games">Browse games <span>↓</span></a>
-    </div>
-    <div class="orbit-art" aria-hidden="true"><div class="orbit orbit-a"></div><div class="orbit orbit-b"></div><div class="planet"><span></span></div><div class="moon"></div><div class="star s1">✦</div><div class="star s2">✧</div><div class="star s3">·</div></div>
-    <div class="hero-foot"><span>NO ACCOUNT REQUIRED</span><span>BUILT TO BE SHARED</span><span>RUNS IN YOUR BROWSER</span></div>
-  </section>
-  <section class="library" id="games">
-    <div class="section-head"><div><div class="eyebrow">THE LIBRARY</div><h2>Pick a game<span class="lime">.</span></h2></div><div class="count" id="gameCount">LOADING LIBRARY</div></div>
-    <div class="tools"><label class="search"><span>⌕</span><input id="search" type="search" placeholder="Search games…" autocomplete="off"></label><div class="filters" id="filters"><button class="filter active" data-filter="all">All</button><button class="filter" data-filter="racing">Racing</button><button class="filter" data-filter="platformer">Platformer</button><button class="filter" data-filter="party">Party</button><button class="filter" data-filter="arcade">Arcade</button></div></div>
-    <div class="grid" id="gameGrid"><div class="loading">Opening the library…</div></div>
-  </section>
-  <section class="about" id="about"><div><div class="eyebrow">MADE TO TRAVEL</div><h2>Not a storefront.<br><em>A game shelf.</em></h2></div><p>MarsMoon keeps the catalogue and game files together in one open repository. The Worker serves the static site; the games themselves are bundled under <code>public/games/</code>. Fork it, download it, or deploy your own copy.</p></section>
-</main>
-<footer><a class="brand small-brand" href="./"><span class="brand-mark">M</span><span>MARS<span class="brand-muted">MOON</span></span></a><span>OPEN SOURCE PROJECT · <a href="https://github.com/tenslant44/marsmoon">GITHUB</a></span><span id="footerStatus">READY TO ROAM</span></footer>
-<script src="./app.js" defer></script>
-</body></html>
+<center>
+<table class="site" cellpadding="0" cellspacing="0" border="0">
+<tr><td>
+<table class="masthead" width="100%" cellpadding="10" cellspacing="0"><tr>
+<td width="72"><div class="logo">M</div></td>
+<td><font size="6" face="Arial"><b>MARS<span class="moon">MOON</span></b></font><br>
+<font face="Courier New" size="2">THE UNOFFICIAL BROWSER GAME ARCHIVE</font></td>
+<td align="right" class="mast-links"><a href="#library">GAME LIBRARY</a> &nbsp;|&nbsp; <a href="https://github.com/tenslant44/marsmoon" target="_blank">SOURCE CODE</a></td>
+</tr></table>
+<table width="100%" class="ticker" cellpadding="5"><tr><td><marquee scrollamount="3">WELCOME TO MARSMOON!! &nbsp; NEW GAMES, OLD GAMES, WEB GAMES &nbsp; // &nbsp; NO ACCOUNT REQUIRED &nbsp; // &nbsp; BEST VIEWED WITH A BROWSER THAT CAN HANDLE TABLES</marquee></td></tr></table>
+<table width="100%" cellpadding="12" cellspacing="0" class="intro"><tr><td>
+<font size="5" face="Arial"><b>Welcome to the game shelf!</b></font><br>
+Browse the collection, pick a category, or search for something specific. This is a small independent archive of browser games and experiments.
+</td></tr></table>
+<a name="library"></a>
+<table width="100%" cellpadding="10" cellspacing="0"><tr><td>
+<font size="5" face="Arial"><b>GAME LIBRARY</b></font> <font size="2" color="#666666" face="Courier New" id="gameCount">LOADING...</font>
+</td></tr></table>
+<table width="100%" cellpadding="8" cellspacing="0" class="search-panel"><tr>
+<td width="100%">
+<form id="searchForm" action="#" onsubmit="return false;">
+<b>SEARCH:</b> <input type="text" id="search" name="q" size="34" maxlength="100" placeholder="Type a game name..." autocomplete="off">
+<input type="button" id="clearSearch" value="CLEAR">
+</form>
+<div id="filters" class="filters">
+<a href="#" class="filter active" data-filter="all">ALL GAMES</a>
+<a href="#" class="filter" data-filter="racing">RACING</a>
+<a href="#" class="filter" data-filter="platformer">PLATFORMERS</a>
+<a href="#" class="filter" data-filter="party">PARTY</a>
+<a href="#" class="filter" data-filter="arcade">ARCADE</a>
+<a href="#" class="filter" data-filter="action">ACTION</a>
+<a href="#" class="filter" data-filter="adventure">ADVENTURE</a>
+<a href="#" class="filter" data-filter="websim">WEBSIM</a>
+<a href="#" class="filter" data-filter="collection">COLLECTIONS</a>
+</div>
+</td></tr></table>
+<table width="100%" cellpadding="8" cellspacing="0"><tr><td>
+<div id="gameGrid" class="game-grid"><div class="loading">LOADING THE GAME ARCHIVE...</div></div>
+</td></tr></table>
+<table width="100%" cellpadding="10" cellspacing="0" class="footer"><tr><td>
+<b>MARS<span class="moon">MOON</span> GAME ARCHIVE</b><br>
+<font size="2">A classic-style browser game collection. <a href="https://github.com/tenslant44/marsmoon" target="_blank">View the repository</a>.</font>
+</td><td align="right"><font size="2" face="Courier New" id="footerStatus">STATUS: STARTING</font></td></tr></table>
+</td></tr></table>
+</center>
+<script type="text/javascript" src="app.js"></script>
+</body>
+</html>
