@@ -5,12 +5,7 @@
       "title": "Meccha Chameleon",
       "description": "A colorful 3D hide-and-seek party game with maps, roles, bots, and custom paint options.",
       "category": "party",
-      "tags": [
-        "chameleon",
-        "hide and seek",
-        "3d",
-        "party"
-      ],
+      "tags": ["chameleon", "hide and seek", "3d", "party"],
       "theme": "chameleon",
       "symbol": "め",
       "path": "./games/meccha-chameleon/index.html",
@@ -22,129 +17,36 @@
       "title": "Sonic Afterimage",
       "description": "A Sonic-inspired platform adventure with zones, bosses, hazards, cutscenes, and save systems.",
       "category": "platformer",
-      "tags": [
-        "sonic",
-        "platformer",
-        "adventure"
-      ],
+      "tags": ["sonic", "platformer", "adventure"],
       "theme": "sonic",
       "symbol": "S",
       "path": "./games/sonic-afterimage/index.html",
       "source": "https://github.com/tenslant44/Sonic-Afterimage",
-      "status": "REPOSITORY BUILD"
-    },
-    {
-      "id": "the-family-dog",
-      "title": "The Family Dog",
-      "description": "An open-world dog game with vehicles, characters, physics, progression, and a large interactive world.",
-      "category": "adventure",
-      "tags": [
-        "dog",
-        "open world",
-        "vehicles"
-      ],
-      "theme": "dog",
-      "symbol": "🐕",
-      "path": "./games/the-family-dog/index.html",
-      "source": "https://github.com/tenslant44/the-family-dog",
-      "status": "REPOSITORY BUILD"
+      "status": "LOCAL SOURCE"
     },
     {
       "id": "wunderkart",
       "title": "Wunderkart DX",
-      "description": "A 3D kart racer with tracks, vehicles, items, ghost data, and multiplayer systems.",
+      "description": "A 3D kart racer with tracks, vehicles, ghost data, and multiplayer systems.",
       "category": "racing",
-      "tags": [
-        "kart",
-        "racing",
-        "3d",
-        "ghosts"
-      ],
+      "tags": ["kart", "racing", "3d", "ghosts"],
       "theme": "kart",
       "symbol": "🏁",
-      "path": "./games/wunderkart/index.html",
+      "path": "./games/wunderkart-dx/index.html",
       "source": "https://github.com/tenslant44/wunderkartv2",
-      "status": "REPOSITORY BUILD"
-    },
-    {
-      "id": "cartman-royale",
-      "title": "Cartman Royale",
-      "description": "A large 3D battle-royale game build with custom maps, characters, and game modes.",
-      "category": "action",
-      "tags": [
-        "3d",
-        "battle royale",
-        "cartman"
-      ],
-      "theme": "cartman",
-      "symbol": "C",
-      "path": "./games/cartman-royale/index.html",
-      "source": "https://github.com/tenslant44/cartmanroyale",
-      "status": "REPOSITORY BUILD"
-    },
-    {
-      "id": "russian-royale",
-      "title": "Russian Royale v3",
-      "description": "The latest Russian Royale project build, with maps, bots, teams, and battle-royale systems.",
-      "category": "action",
-      "tags": [
-        "battle royale",
-        "bots",
-        "russian royale"
-      ],
-      "theme": "russian",
-      "symbol": "R",
-      "path": "./games/russian-royale/index.html",
-      "source": "https://github.com/tenslant44/russianv3",
-      "status": "REPOSITORY BUILD"
-    },
-    {
-      "id": "absolute-batman",
-      "title": "Absolute Batman",
-      "description": "A 3D Batman action game with story, characters, stealth, and combat systems.",
-      "category": "action",
-      "tags": [
-        "batman",
-        "3d",
-        "story"
-      ],
-      "theme": "batman",
-      "symbol": "B",
-      "path": "./games/absolute-batman/index.html",
-      "source": "https://github.com/tenslant44/absolute-batman",
-      "status": "REPOSITORY BUILD"
-    },
-    {
-      "id": "avalon",
-      "title": "Avalon: Half-Day Mayhem",
-      "description": "A large 3D action sandbox with a detailed world, physics, characters, and progression.",
-      "category": "action",
-      "tags": [
-        "3d",
-        "sandbox",
-        "world"
-      ],
-      "theme": "avalon",
-      "symbol": "A",
-      "path": "./games/avalon/index.html",
-      "source": "https://github.com/tenslant44/avalon",
-      "status": "REPOSITORY BUILD"
+      "status": "LOCAL SOURCE"
     },
     {
       "id": "bopimo-web-builds",
       "title": "Bopimo Web Builds",
       "description": "A collection of browser builds, prototypes, and experimental Bopimo clients.",
       "category": "collection",
-      "tags": [
-        "bopimo",
-        "browser builds",
-        "prototypes"
-      ],
+      "tags": ["bopimo", "browser builds", "prototypes"],
       "theme": "bopimo",
       "symbol": "B",
       "path": "./games/bopimo-web-builds/index.html",
       "source": "https://github.com/tenslant44/BopimoWebBuilds",
-      "status": "REPOSITORY BUILD"
+      "status": "SOURCE LINK"
     }
   ]
 }

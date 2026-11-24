@@ -1,1 +1,24 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sonic Afterimage — MarsMoon</title><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#080b10;color:#e8edf5;font:14px system-ui}header{height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:#101722;border-bottom:1px solid #273344}a{color:#9bd6b4;text-decoration:none}iframe{display:block;width:100%;height:calc(100% - 42px);border:0;background:#000}</style></head><body><header><strong>Sonic Afterimage</strong><a href="https://github.com/tenslant44/Sonic-Afterimage" target="_blank" rel="noreferrer">SOURCE REPOSITORY ↗</a></header><iframe src="https://cdn.jsdelivr.net/gh/tenslant44/Sonic-Afterimage@main/index.html" allow="fullscreen; autoplay; gamepad; pointer-lock" allowfullscreen></iframe></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Sonic Afterimage</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="wrap">
+  <canvas id="screen" width="424" height="240"></canvas>
+</div>
+<div id="touch">
+  <div id="dpad">
+    <button data-k="left">◀</button><button data-k="up">▲</button><button data-k="down">▼</button><button data-k="right">▶</button>
+  </div>
+  <div id="btns">
+    <button data-k="start" class="small">START</button>
+    <button data-k="jump" class="big">A</button>
+  </div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
