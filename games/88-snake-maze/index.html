@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Snake Maze</title>
+<style>
+  :root {
+    --bg: #05080f;
+    --line: #17243a;
+    --text: #dfe9ff;
+    --dim: #6f86ad;
+    --accent: #38f0b0;
+    --gold: #ffc94d;
+    --danger: #ff5d7a;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background:
+      radial-gradient(1100px 640px at 50% -12%, #12273f 0%, transparent 62%),
+      radial-gradient(900px 620px at 50% 118%, #0a2a29 0%, transparent 58%),
+      var(--bg);
+    color: var(--text);
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px;
+    overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    max-width: 100%;
+  }
+  .topbar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .brand {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .26em;
+    color: #cfe0ff;
+    white-space: nowrap;
+  }
+  .brand b { color: var(--accent); font-weight: 700; }
+  .stats { display: flex; gap: 7px; flex-wrap: wrap; }
+  .stat {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 5px 10px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: rgba(16, 27, 45, .72);
+  }
+  .stat .k {
+    font-size: 9px;
+    letter-spacing: .17em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+  .stat .v {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: .02em;
+  }
+  #lives { letter-spacing: 3px; font-size: 13px; }
+  #lives .hp { color: var(--danger); }
+  #lives .hp.empty { color: #26334c; }
+  .stage {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: #060b14;
+    box-shadow: 0 28px 70px -30px #000, 0 0 0 1px rgba(120, 180, 255, .04);
+    touch-action: none;
+    line-height: 0;
+  }
+  canvas { display: block; }
+  .overlay {
+    position: absolute;
+    inset: 0;
+    display: none;
+    place-items: center;
+    padding: 22px;
+    background: rgba(4, 8, 16, .8);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    line-height: 1.5;
+  }
+  .overlay.show { display: grid; }
+  .card {
+    text-align: center;
+    max-width: 430px;
+    animation: pop .26s ease-out both;
+  }
+  @keyframes pop {
+    from { transform: translateY(10px) scale(.97); opacity: 0; }
+    to { transform: none; opacity: 1; }
+  }
+  .eyebrow {
+    font-size: 10px;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: #5b76a3;
+    margin-bottom: 10px;
+  }
+  .card h1 {
+    margin: 0 0 14px;
+    font-size: clamp(24px, 5.4vw, 40px);
+    letter-spacing: .07em;
+    color: #eaf4ff;
+    text-shadow: 0 0 26px rgba(56, 240, 176, .28);
+  }
+  .card h1.danger {
+    color: #ff7288;
+    text-shadow: 0 0 26px rgba(255, 93, 122, .35);
+  }
+  .card p {
+    margin: 7px 0;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: #9db1d1;
+  }
+  .card b { color: #eaf4ff; }
+  .best {
+    color: var(--gold) !important;
+    font-size: 11px !important;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .btn {
+    margin-top: 18px;
+    padding: 12px 24px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 12.5px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #c9fff0;
+    border: 1px solid rgba(56, 240, 176, .45);
+    border-radius: 10px;
+    background: linear-gradient(180deg, rgba(56, 240, 176, .18), rgba(56, 240, 176, .05));
+    transition: transform .14s ease, background .14s ease, box-shadow .14s ease;
+  }
+  .btn:hover {
+    background: linear-gradient(180deg, rgba(56, 240, 176, .3), rgba(56, 240, 176, .1));
+    box-shadow: 0 0 26px -6px rgba(56, 240, 176, .6);
+    transform: translateY(-1px);
+  }
+  .btn:active { transform: translateY(0); }
+  .btn span { margin-left: 7px; font-size: 10.5px; opacity: .55; }
+  .hint {
+    font-size: 10.5px;
+    letter-spacing: .1em;
+    color: #5b76a3;
+    text-align: center;
+  }
+  kbd {
+    display: inline-block;
+    padding: 1px 5px;
+    margin: 0 1px;
+    font: inherit;
+    font-size: 10px;
+    color: #9db1d1;
+    background: #111d30;
+    border: 1px solid #22344f;
+    border-bottom-width: 2px;
+    border-radius: 4px;
+  }
+  @media (max-height: 620px) {
+    .hint { display: none; }
+    .brand { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">SNAKE<b>MAZE</b></div>
+    <div class="stats">
+      <div class="stat"><span class="k">Score</span><span class="v" id="score">0</span></div>
+      <div class="stat"><span class="k">Level</span><span class="v" id="level">1</span></div>
+      <div class="stat"><span class="k">Orbs</span><span class="v" id="orbs">0/0</span></div>
+      <div class="stat"><span class="k">Lives</span><span class="v" id="lives"></span></div>
+    </div>
+  </div>
+
+  <div class="stage" id="stage">
+    <canvas id="game" width="640" height="480"></canvas>
+    <div class="overlay" id="overlay"></div>
+  </div>
+
+  <div class="hint">
+    <kbd>&uarr;</kbd><kbd>&larr;</kbd><kbd>&darr;</kbd><kbd>&rarr;</kbd> / <kbd>WASD</kbd> steer
+    &middot; <kbd>P</kbd> pause &middot; <kbd>R</kbd> restart
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const TAU = Math.PI * 2;
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const stageEl = document.getElementById('stage');
+  const overlayEl = document.getElementById('overlay');
+  const elScore = document.getElementById('score');
+  const elLevel = document.getElementById('level');
+  const elOrbs = document.getElementById('orbs');
+  const elLives = document.getElementById('lives');
+
+  const DIRS = {
+    up: { x: 0, y: -1 },
+    down: { x: 0, y: 1 },
+    left: { x: -1, y: 0 },
+    right: { x: 1, y: 0 },
+  };
+
+  const state = {
+    phase: 'title',
+    score: 0,
+    best: 0,
+    level: 1,
+    lives: 3,
+    maze: null,
+    W: 0,
+    H: 0,
+    snake: [],
+    prevSnake: [],
+    dir: DIRS.right,
+    queue: [],
+    orbs: [],
+    total: 0,
+    start: null,
+    grow: 0,
+    tickDur: 120,
+    acc: 0,
+    lastT: 0,
+    tile: 24,
+    offX: 0,
+    offY: 0,
+    viewW: 0,
+    viewH: 0,
+    dpr: 1,
+    particles: [],
+    pops: [],
+    shake: 0,
+    flash: 0,
+    flashColor: '255,70,90',
+    t: 0,
+    mazeCanvas: null,
+  };
+
+  let overlayToken = 0;
+
+  try {
+    state.best = parseInt(localStorage.getItem('snakeMazeBest') || '0', 10) || 0;
+  } catch (e) {
+    state.best = 0;
+  }
+
+  /* ---------------- maze generation ---------------- */
+
+  function genMaze(cols, rows) {
+    const W = cols * 2 + 1;
+    const H = rows * 2 + 1;
+    const g = new Uint8Array(W * H).fill(1);
+    const vis = new Uint8Array(cols * rows);
+    const stack = [[0, 0]];
+    vis[0] = 1;
+    g[W + 1] = 0;
+
+    while (stack.length) {
+      const [x, y] = stack[stack.length - 1];
+      const opts = [];
+      if (x > 0 && !vis[y * cols + x - 1]) opts.push([x - 1, y]);
+      if (x < cols - 1 && !vis[y * cols + x + 1]) opts.push([x + 1, y]);
+      if (y > 0 && !vis[(y - 1) * cols + x]) opts.push([x, y - 1]);
+      if (y < rows - 1 && !vis[(y + 1) * cols + x]) opts.push([x, y + 1]);
+      if (!opts.length) {
+        stack.pop();
+        continue;
+      }
+      const [nx, ny] = opts[(Math.random() * opts.length) | 0];
+      vis[ny * cols + nx] = 1;
+      g[(2 * y + 1 + (ny - y)) * W + (2 * x + 1 + (nx - x))] = 0;
+      g[(2 * ny + 1) * W + (2 * nx + 1)] = 0;
+      stack.push([nx, ny]);
+    }
+    return { g, W, H };
+  }
+
+  function braid(g, W, H, p) {
+    for (let y = 1; y < H - 1; y++) {
+      for (let x = 1; x < W - 1; x++) {
+        if (!g[y * W + x]) continue;
+        const evenX = x % 2 === 0;
+        const evenY = y % 2 === 0;
+        if (evenX === evenY) continue;
+        if (Math.random() < p) g[y * W + x] = 0;
+      }
+    }
+  }
+
+  function reduceDeadEnds(g, W, H) {
+    const D = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+    for (let pass = 0; pass < 4; pass++) {
+      let changed = 0;
+      for (let y = 1; y < H - 1; y++) {
+        for (let x = 1; x < W - 1; x++) {
+          if (g[y * W + x]) continue;
+          let open = 0;
+          const cand = [];
+          for (const [dx, dy] of D) {
+            const ax = x + dx;
+            const ay = y + dy;
+            if (ax < 0 || ay < 0 || ax >= W || ay >= H) continue;
+            if (!g[ay * W + ax]) { open++; continue; }
+            const bx = x + dx * 2;
+            const by = y + dy * 2;
+            if (bx < 0 || by < 0 || bx >= W || by >= H) continue;
+            if (!g[by * W + bx]) cand.push([ax, ay]);
+          }
+          if (open <= 1 && cand.length) {
+            const [cx, cy] = cand[(Math.random() * cand.length) | 0];
+            g[cy * W + cx] = 0;
+            changed++;
+          }
+        }
+      }
+      if (!changed) break;
+    }
+  }
+
+  function findStart(g, W, H) {
+    let best = null;
+    const consider = (x, y, len, horiz) => {
+      if (len < 4) return;
+      if (!best || len > best.len) best = { x, y, len, horiz };
+    };
+    for (let y = 1; y < H - 1; y += 2) {
+      let x = 1;
+      while (x < W - 1) {
+        if (g[y * W + x]) { x++; continue; }
+        let e = x;
+        while (e + 1 < W && !g[y * W + e + 1]) e++;
+        consider(x, y, e - x + 1, true);
+        x = e + 1;
+      }
+    }
+    if (!best) {
+      for (let x = 1; x < W - 1; x += 2) {
+        let y = 1;
+        while (y < H - 1) {
+          if (g[y * W + x]) { y++; continue; }
+          let e = y;
+          while (e + 1 < H && !g[(e + 1) * W + x]) e++;
+          consider(x, y, e - y + 1, false);
+          y = e + 1;
+        }
+      }
+    }
+    return best || { x: 1, y: 1, len: 3, horiz: true };
+  }
+
+  /* ---------------- level / snake setup ---------------- */
+
+  function placeSnakeAtStart() {
+    const st = state.start;
+    const body = [];
+    const dir = st.horiz ? DIRS.right : DIRS.down;
+    for (let i = 0; i < 3; i++) {
+      body.push(st.horiz ? { x: st.x + 2 - i, y: st.y } : { x: st.x, y: st.y + 2 - i });
+    }
+    state.snake = body;
+    state.prevSnake = body.map((p) => ({ x: p.x, y: p.y }));
+    state.dir = dir;
+    state.queue = [];
+    state.grow = 0;
+
+    const occupied = new Set(body.map((p) => p.y * state.W + p.x));
+    for (const o of state.orbs) {
+      if (occupied.has(o.y * state.W + o.x)) relocateOrb(o, occupied);
+    }
+  }
+
+  function relocateOrb(o, occupied) {
+    const g = state.maze;
+    const W = state.W;
+    const H = state.H;
+    for (let i = 0; i < 500; i++) {
+      const x = 1 + ((Math.random() * (W - 2)) | 0);
+      const y = 1 + ((Math.random() * (H - 2)) | 0);
+      const idx = y * W + x;
+      if (g[idx] || occupied.has(idx)) continue;
+      if (state.orbs.some((q) => q !== o && q.x === x && q.y === y)) continue;
+      o.x = x;
+      o.y = y;
+      return;
+    }
+  }
+
+  function spawnOrbs(n) {
+    const g = state.maze;
+    const W = state.W;
+    const H = state.H;
+    const head = state.snake[0];
+    const taken = new Set(state.snake.map((s) => s.y * W + s.x));
+    const pool = [];
+    for (let y = 1; y < H - 1; y++) {
+      for (let x = 1; x < W - 1; x++) {
+        const idx = y * W + x;
+        if (g[idx] || taken.has(idx)) continue;
+        if (Math.abs(x - head.x) + Math.abs(y - head.y) < 6) continue;
+        pool.push({ x, y });
+      }
+    }
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = (Math.random() * (i + 1)) | 0;
+      const tmp = pool[i];
+      pool[i] = pool[j];
+      pool[j] = tmp;
+    }
+    state.orbs = pool.slice(0, n).map((p) => ({ x: p.x, y: p.y, ph: Math.random() * TAU }));
+  }
+
+  function buildLevel(level) {
+    const cols = Math.min(17, 13 + Math.floor((level - 1) / 2) * 2);
+    const rows = Math.min(13, 9 + Math.floor((level - 1) / 2) * 2);
+    const m = genMaze(cols, rows);
+    braid(m.g, m.W, m.H, 0.26);
+    reduceDeadEnds(m.g, m.W, m.H);
+
+    state.maze = m.g;
+    state.W = m.W;
+    state.H = m.H;
+    state.start = findStart(m.g, m.W, m.H);
+
+    state.snake = [];
+    state.orbs = [];
+    placeSnakeAtStart();
+
+    state.total = 4 + Math.min(5, Math.ceil(level / 2));
+    spawnOrbs(state.total);
+
+    state.tickDur = Math.max(62, 120 - (level - 1) * 7);
+    state.acc = 0;
+    state.particles.length = 0;
+    state.pops.length = 0;
+    state.shake = 0;
+    state.flash = 0;
+
+    layout();
+    updateHUD();
+  }
+
+  /* ---------------- hud / overlay ---------------- */
+
+  function updateHUD() {
+    elScore.textContent = state.score;
+    elLevel.textContent = state.level;
+    elOrbs.textContent = (state.total - state.orbs.length) + '/' + state.total;
+    const empty = Math.max(0, 3 - state.lives);
+    elLives.innerHTML =
+      '<span class="hp">' + '\u2665'.repeat(state.lives) + '</span>' +
+      '<span class="hp empty">' + '\u2665'.repeat(empty) + '</span>';
+  }
+
+  function setOverlay(html) {
+    overlayEl.innerHTML = html;
+    overlayEl.classList.add('show');
+  }
+
+  function clearOverlay() {
+    overlayToken++;
+    overlayEl.classList.remove('show');
+    overlayEl.innerHTML = '';
+  }
+
+  function showTitle() {
+    setOverlay(
+      '<div class="card">' +
+        '<div class="eyebrow">A maze. A snake. Some orbs.</div>' +
+        '<h1>SNAKE MAZE</h1>' +
+        '<p>Steer the snake through the maze and collect every glowing orb.<br>' +
+        'Walls end your run &mdash; your own tail can\'t hurt you.</p>' +
+        '<p class="best">Best: ' + state.best + '</p>' +
+        '<button class="btn" data-action="start">Start<span>Enter</span></button>' +
+      '</div>'
+    );
+  }
+
+  /* ---------------- flow ---------------- */
+
+  function newGame() {
+    clearOverlay();
+    state.score = 0;
+    state.level = 1;
+    state.lives = 3;
+    buildLevel(1);
+    state.phase = 'playing';
+    state.lastT = 0;
+    updateHUD();
+  }
+
+  function nextLevel() {
+    clearOverlay();
+    state.level++;
+    if (state.level % 4 === 0 && state.lives < 5) state.lives++;
+    buildLevel(state.level);
+    state.phase = 'playing';
+    state.lastT = 0;
+    updateHUD();
+  }
+
+  function gameOver() {
+    state.phase = 'gameover';
+    state.prevSnake = state.snake.map((p) => ({ x: p.x, y: p.y }));
+    state.acc = 0;
+    if (state.score > state.best) {
+      state.best = state.score;
+      try { localStorage.setItem('snakeMazeBest', String(state.best)); } catch (e) {}
+    }
+    setOverlay(
+      '<div class="card">' +
+        '<div class="eyebrow">Run complete</div>' +
+        '<h1 class="danger">GAME OVER</h1>' +
+        '<p>You reached <b>level ' + state.level + '</b> with <b>' + state.score + '</b> points.</p>' +
+        '<p class="best">Best: ' + state.best + '</p>' +
+        '<button class="btn" data-action="restart">Play again<span>R</span></button>' +
+      '</div>'
+    );
+  }
+
+  function levelClear() {
+    state.phase = 'levelclear';
+    state.acc = 0;
+    const bonus = 50 * state.level + state.lives * 20;
+    state.score += bonus;
+    if (state.score > state.best) {
+      state.best = state.score;
+      try { localStorage.setItem('snakeMazeBest', String(state.best)); } catch (e) {}
+    }
+    const head = state.snake[0];
+    burst(head.x, head.y, '#38f0b0', 30);
+    state.flash = 1;
+    state.flashColor = '56,240,176';
+    updateHUD();
+
+    const my = ++overlayToken;
+    setTimeout(() => {
+      if (overlayToken !== my || state.phase !== 'levelclear') return;
+      setOverlay(
+        '<div class="card">' +
+          '<div class="eyebrow">Level ' + state.level + ' clear</div>' +
+          '<h1>NICE RUN</h1>' +
+          '<p>Clear bonus <b>+' + bonus + '</b></p>' +
+          '<p class="best">Score: ' + state.score + '</p>' +
+          '<button class="btn" data-action="next">Next level<span>Enter</span></button>' +
+        '</div>'
+      );
+    }, 620);
+  }
+
+  function togglePause() {
+    if (state.phase === 'playing') {
+      state.phase = 'paused';
+      setOverlay(
+        '<div class="card">' +
+          '<div class="eyebrow">Take a breath</div>' +
+          '<h1>PAUSED</h1>' +
+          '<p>Level ' + state.level + ' &middot; Score ' + state.score + '</p>' +
+          '<button class="btn" data-action="resume">Resume<span>P</span></button>' +
+        '</div>'
+      );
+    } else if (state.phase === 'paused') {
+      clearOverlay();
+      state.phase = 'playing';
+      state.lastT = 0;
+    }
+  }
+
+  function primary() {
+    if (state.phase === 'title' || state.phase === 'gameover') newGame();
+    else if (state.phase === 'levelclear') nextLevel();
+    else if (state.phase === 'paused') togglePause();
+  }
+
+  /* ---------------- simulation ---------------- */
+
+  function queueDir(d) {
+    if (state.phase !== 'playing') return;
+    const last = state.queue.length ? state.queue[state.queue.length - 1] : state.dir;
+    if (d.x === -last.x && d.y === -last.y) return;
+    if (d.x === last.x && d.y === last.y) return;
+    if (state.queue.length < 2) state.queue.push(d);
+  }
+
+  function step() {
+    state.prevSnake = state.snake.map((p) => ({ x: p.x, y: p.y }));
+    if (state.queue.length) state.dir = state.queue.shift();
+
+    const head = state.snake[0];
+    const nx = head.x + state.dir.x;
+    const ny = head.y + state.dir.y;
+
+    if (nx < 0 || ny < 0 || nx >= state.W || ny >= state.H || state.maze[ny * state.W + nx]) {
+      return hitWall(nx, ny);
+    }
+
+    state.snake.unshift({ x: nx, y: ny });
+
+    const oi = state.orbs.findIndex((o) => o.x === nx && o.y === ny);
+    if (oi >= 0) {
+      state.orbs.splice(oi, 1);
+      const gain = 10 * state.level + 5;
+      state.score += gain;
+      burst(nx, ny, '#ffc94d', 18);
+      pop(nx, ny, '+' + gain, '#ffd97a');
+      if (state.snake.length < 16) state.grow += 2;
+      updateHUD();
+      if (!state.orbs.length) return levelClear();
+    }
+
+    if (state.grow > 0) state.grow--;
+    else state.snake.pop();
+  }
+
+  function hitWall(nx, ny) {
+    state.lives--;
+    state.shake = 16;
+    state.flash = 1;
+    state.flashColor = '255,70,90';
+    const px = Math.max(0, Math.min(state.W - 1, nx));
+    const py = Math.max(0, Math.min(state.H - 1, ny));
+    burst(px, py, '#ff5d7a', 22);
+    state.acc = 0;
+    state.prevSnake = state.snake.map((p) => ({ x: p.x, y: p.y }));
+    updateHUD();
+    if (state.lives <= 0) return gameOver();
+    placeSnakeAtStart();
+  }
+
+  function burst(tx, ty, color, n) {
+    const cx = state.offX + (tx + 0.5) * state.tile;
+    const cy = state.offY + (ty + 0.5) * state.tile;
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * TAU;
+      const sp = 40 + Math.random() * 190;
+      state.particles.push({
+        x: cx,
+        y: cy,
+        vx: Math.cos(a) * sp,
+        vy: Math.sin(a) * sp,
+        r: 1.5 + Math.random() * state.tile * 0.1,
+        life: 1,
+        max: 0.5 + Math.random() * 0.5,
+        c: color,
+      });
+    }
+  }
+
+  function pop(tx, ty, text, color) {
+    state.pops.push({
+      x: state.offX + (tx + 0.5) * state.tile,
+      y: state.offY + (ty + 0.2) * state.tile,
+      text,
+      color,
+      life: 1,
+    });
+  }
+
+  function update(dt) {
+    const ds = dt / 1000;
+    state.t += ds;
+
+    if (state.shake > 0) state.shake = Math.max(0, state.shake - (state.shake * 10 + 8) * ds);
+    if (state.flash > 0) state.flash = Math.max(0, state.flash - ds * 2.2);
+
+    for (let i = state.particles.length - 1; i >= 0; i--) {
+      const p = state.particles[i];
+      p.x += p.vx * ds;
+      p.y += p.vy * ds;
+      p.vx *= 1 - 2.2 * ds;
+      p.vy *= 1 - 2.2 * ds;
+      p.vy += 70 * ds;
+      p.life -= ds / p.max;
+      if (p.life <= 0) state.particles.splice(i, 1);
+    }
+
+    for (let i = state.pops.length - 1; i >= 0; i--) {
+      const p = state.pops[i];
+      p.y -= 28 * ds;
+      p.life -= ds / 0.9;
+      if (p.life <= 0) state.pops.splice(i, 1);
+    }
+  }
+
+  /* ---------------- layout & static render ---------------- */
+
+  function rr(c, x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.arcTo(x + w, y, x + w, y + h, r);
+    c.arcTo(x + w, y + h, x, y + h, r);
+    c.arcTo(x, y + h, x, y, r);
+    c.arcTo(x, y, x + w, y, r);
+    c.closePath();
+  }
+
+  function layout() {
+    if (!state.W) return;
+    const maxW = Math.min(window.innerWidth - 30, 940);
+    const maxH = Math.max(200, window.innerHeight - 168);
+    const aspect = state.W / state.H;
+    let w = maxW;
+    let h = w / aspect;
+    if (h > maxH) {
+      h = maxH;
+      w = h * aspect;
+    }
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    state.dpr = dpr;
+    state.viewW = Math.round(w);
+    state.viewH = Math.round(h);
+    canvas.style.width = state.viewW + 'px';
+    canvas.style.height = state.viewH + 'px';
+    canvas.width = Math.round(state.viewW * dpr);
+    canvas.height = Math.round(state.viewH * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    state.tile = Math.min(state.viewW / state.W, state.viewH / state.H);
+    state.offX = (state.viewW - state.tile * state.W) / 2;
+    state.offY = (state.viewH - state.tile * state.H) / 2;
+
+    buildMazeCanvas();
+  }
+
+  function buildMazeCanvas() {
+    const { viewW, viewH, dpr, tile, offX, offY, W, H, maze } = state;
+    if (!viewW || !maze) return;
+
+    const off = document.createElement('canvas');
+    off.width = Math.max(1, Math.round(viewW * dpr));
+    off.height = Math.max(1, Math.round(viewH * dpr));
+    const c = off.getContext('2d');
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const bw = tile * W;
+    const bh = tile * H;
+    rr(c, offX - 5, offY - 5, bw + 10, bh + 10, 10);
+    c.fillStyle = '#080e1a';
+    c.fill();
+    c.strokeStyle = 'rgba(96,150,220,.16)';
+    c.lineWidth = 1;
+    c.stroke();
+
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const px = offX + x * tile;
+        const py = offY + y * tile;
+        if (maze[y * W + x]) {
+          c.fillStyle = '#20304d';
+          c.fillRect(px, py, tile + 0.4, tile + 0.4);
+        } else {
+          c.fillStyle = '#0a1322';
+          c.fillRect(px, py, tile + 0.4, tile + 0.4);
+          c.strokeStyle = 'rgba(90,140,210,.055)';
+          c.lineWidth = 1;
+          c.strokeRect(px + 0.5, py + 0.5, tile - 1, tile - 1);
+        }
+      }
+    }
+
+    const hl = Math.max(1.5, tile * 0.085);
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        if (!maze[y * W + x]) continue;
+        const px = offX + x * tile;
+        const py = offY + y * tile;
+        const up = y > 0 && maze[(y - 1) * W + x];
+        const dn = y < H - 1 && maze[(y + 1) * W + x];
+        const lf = x > 0 && maze[y * W + x - 1];
+        const rt = x < W - 1 && maze[y * W + x + 1];
+        if (!up) {
+          c.fillStyle = 'rgba(150,200,255,.20)';
+          c.fillRect(px, py, tile + 0.4, hl);
+        }
+        if (!lf) {
+          c.fillStyle = 'rgba(150,200,255,.11)';
+          c.fillRect(px, py, hl * 0.8, tile + 0.4);
+        }
+        if (!dn) {
+          c.fillStyle = 'rgba(0,0,0,.32)';
+          c.fillRect(px, py + tile - hl, tile + 0.4, hl);
+        }
+        if (!rt) {
+          c.fillStyle = 'rgba(0,0,0,.22)';
+          c.fillRect(px + tile - hl * 0.8, py, hl * 0.8, tile + 0.4);
+        }
+      }
+    }
+
+    state.mazeCanvas = off;
+  }
+
+  /* ---------------- drawing ---------------- */
+
+  function draw() {
+    const { viewW, viewH, tile, offX, offY } = state;
+    ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+    ctx.clearRect(0, 0, viewW, viewH);
+
+    const bg = ctx.createLinearGradient(0, 0, 0, viewH);
+    bg.addColorStop(0, '#070d18');
+    bg.addColorStop(1, '#050a12');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, viewW, viewH);
+
+    const sx = state.shake ? (Math.random() * 2 - 1) * state.shake : 0;
+    const sy = state.shake ? (Math.random() * 2 - 1) * state.shake : 0;
+    ctx.translate(sx, sy);
+
+    if (state.mazeCanvas) ctx.drawImage(state.mazeCanvas, 0, 0, viewW, viewH);
+
+    // orbs
+    for (const o of state.orbs) {
+      const cx = offX + (o.x + 0.5) * tile;
+      const cy = offY + (o.y + 0.5) * tile;
+      const pulse = 1 + Math.sin(state.t * 4 + o.ph) * 0.12;
+      const r = tile * 0.27 * pulse;
+
+      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, tile * 1.05);
+      g.addColorStop(0, 'rgba(255,205,90,.50)');
+      g.addColorStop(0.42, 'rgba(255,190,60,.13)');
+      g.addColorStop(1, 'rgba(255,190,60,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(cx, cy, tile * 1.05, 0, TAU);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffcc57';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, TAU);
+      ctx.fill();
+
+      ctx.fillStyle = '#fff6d4';
+      ctx.beginPath();
+      ctx.arc(cx - r * 0.24, cy - r * 0.28, r * 0.4, 0, TAU);
+      ctx.fill();
+    }
+
+    // snake
+    const n = state.snake.length;
+    const t = Math.max(0, Math.min(1, state.acc / state.tickDur));
+    for (let i = n - 1; i >= 0; i--) {
+      const cur = state.snake[i];
+      const prev = i === 0 ? state.prevSnake[0] : (state.prevSnake[i - 1] || cur);
+      const gx = prev.x + (cur.x - prev.x) * t;
+      const gy = prev.y + (cur.y - prev.y) * t;
+      const cx = offX + (gx + 0.5) * tile;
+      const cy = offY + (gy + 0.5) * tile;
+      const f = n > 1 ? i / (n - 1) : 0;
+      const size = tile * (0.86 - f * 0.06);
+      const hue = 158 + f * 48;
+      const light = 62 - f * 24;
+
+      ctx.fillStyle = 'hsl(' + hue + ' 82% ' + light + '%)';
+      rr(ctx, cx - size / 2, cy - size / 2, size, size, size * 0.34);
+      ctx.fill();
+
+      if (i === 0) {
+        ctx.save();
+        ctx.shadowColor = 'rgba(56,240,176,.85)';
+        ctx.shadowBlur = tile * 0.75;
+        ctx.fillStyle = 'rgba(56,240,176,.22)';
+        rr(ctx, cx - size / 2, cy - size / 2, size, size, size * 0.34);
+        ctx.fill();
+        ctx.restore();
+
+        const dx = state.dir.x;
+        const dy = state.dir.y;
+        const px = -dy;
+        const py = dx;
+        const eye = Math.max(1.4, size * 0.13);
+        ctx.fillStyle = '#04141a';
+        for (const sgn of [-1, 1]) {
+          ctx.beginPath();
+          ctx.arc(cx + dx * size * 0.18 + px * size * 0.22 * sgn, cy + dy * size * 0.18 + py * size * 0.22 * sgn, eye, 0, TAU);
+          ctx.fill();
+        }
+      }
+    }
+
+    // particles
+    for (const p of state.particles) {
+      ctx.globalAlpha = Math.max(0, Math.min(1, p.life));
+      ctx.fillStyle = p.c;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * (0.4 + p.life * 0.6), 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // score pops
+    if (state.pops.length) {
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = '700 ' + Math.max(11, tile * 0.42) + 'px ui-monospace, monospace';
+      for (const p of state.pops) {
+        ctx.globalAlpha = Math.max(0, Math.min(1, p.life * 1.5));
+        ctx.fillStyle = p.color;
+        ctx.fillText(p.text, p.x, p.y);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+    if (state.flash > 0) {
+      ctx.fillStyle = 'rgba(' + state.flashColor + ',' + state.flash * 0.3 + ')';
+      ctx.fillRect(0, 0, viewW, viewH);
+    }
+  }
+
+  /* ---------------- loop ---------------- */
+
+  function frame(now) {
+    requestAnimationFrame(frame);
+    const dt = state.lastT ? Math.min(64, now - state.lastT) : 0;
+    state.lastT = now;
+
+    update(dt);
+
+    if (state.phase === 'playing') {
+      state.acc += dt;
+      let guard = 0;
+      while (state.acc >= state.tickDur && state.phase === 'playing' && guard++ < 4) {
+        state.acc -= state.tickDur;
+        step();
+      }
+      if (state.phase !== 'playing') state.acc = 0;
+    }
+
+    draw();
+  }
+
+  /* ---------------- input ---------------- */
+
+  const KEYMAP = {
+    arrowup: DIRS.up, arrowdown: DIRS.down, arrowleft: DIRS.left, arrowright: DIRS.right,
+    w: DIRS.up, s: DIRS.down, a: DIRS.left, d: DIRS.right,
+    k: DIRS.up, j: DIRS.down, h: DIRS.left, l: DIRS.right,
+  };
+
+  window.addEventListener('keydown', (e) => {
+    const k = e.key.toLowerCase();
+    const dir = KEYMAP[k];
+    if (dir) {
+      e.preventDefault();
+      queueDir(dir);
+      return;
+    }
+    if (k === 'enter' || k === ' ') {
+      e.preventDefault();
+      primary();
+      return;
+    }
+    if (k === 'p' || k === 'escape') {
+      e.preventDefault();
+      togglePause();
+      return;
+    }
+    if (k === 'r') {
+      e.preventDefault();
+      newGame();
+    }
+  });
+
+  overlayEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const a = btn.dataset.action;
+    if (a === 'start' || a === 'restart') newGame();
+    else if (a === 'next') nextLevel();
+    else if (a === 'resume') togglePause();
+  });
+
+  let touchStart = null;
+  stageEl.addEventListener('touchstart', (e) => {
+    const t = e.changedTouches[0];
+    touchStart = { x: t.clientX, y: t.clientY };
+  }, { passive: true });
+
+  stageEl.addEventListener('touchend', (e) => {
+    if (!touchStart) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStart.x;
+    const dy = t.clientY - touchStart.y;
+    touchStart = null;
+    if (Math.abs(dx) < 26 && Math.abs(dy) < 26) return;
+    if (Math.abs(dx) > Math.abs(dy)) queueDir(dx > 0 ? DIRS.right : DIRS.left);
+    else queueDir(dy > 0 ? DIRS.down : DIRS.up);
+  }, { passive: true });
+
+  let resizeRaf = 0;
+  function onResize() {
+    cancelAnimationFrame(resizeRaf);
+    resizeRaf = requestAnimationFrame(() => layout());
+  }
+  window.addEventListener('resize', onResize);
+  window.addEventListener('orientationchange', onResize);
+
+  /* ---------------- boot ---------------- */
+
+  buildLevel(1);
+  state.phase = 'title';
+  updateHUD();
+  showTitle();
+  requestAnimationFrame(frame);
+})();
+</script>
+
+<script src="../assets/aaa-arcade.js" defer></script>
+</body>
+</html>

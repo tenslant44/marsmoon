@@ -730,6 +730,81 @@
       "source": "https://github.com/NnopponS/100-games/blob/main/80-jigsaw/index.html",
       "sourceLabel": "ORIGINAL SOURCE",
       "status": "LOCAL BUILD"
+    },
+    {
+      "id": "84-emoji-match",
+      "title": "Symbol Match",
+      "description": "Find matching symbols in a quick memory game.",
+      "category": "casual",
+      "tags": [
+        "casual",
+        "memory"
+      ],
+      "symbol": "🙂",
+      "path": "games/84-emoji-match/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/84-emoji-match/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "88-snake-maze",
+      "title": "Snake Maze",
+      "description": "Guide the snake through a maze to reach the goal.",
+      "category": "arcade",
+      "tags": [
+        "arcade",
+        "maze"
+      ],
+      "symbol": "🐍",
+      "path": "games/88-snake-maze/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/88-snake-maze/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "89-bounce-ball",
+      "title": "Bounce Ball",
+      "description": "Keep the ball bouncing and avoid missing the platform.",
+      "category": "arcade",
+      "tags": [
+        "arcade",
+        "physics"
+      ],
+      "symbol": "⚽",
+      "path": "games/89-bounce-ball/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/89-bounce-ball/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "91-volcano-escape",
+      "title": "Volcano Escape",
+      "description": "Navigate a platform challenge through a volcanic environment.",
+      "category": "adventure",
+      "tags": [
+        "adventure",
+        "platformer"
+      ],
+      "symbol": "🌋",
+      "path": "games/91-volcano-escape/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/91-volcano-escape/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "92-treasure-dive",
+      "title": "Treasure Dive",
+      "description": "Explore underwater and collect hidden treasure.",
+      "category": "adventure",
+      "tags": [
+        "adventure",
+        "exploration"
+      ],
+      "symbol": "🤿",
+      "path": "games/92-treasure-dive/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/92-treasure-dive/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
     }
   ]
 }
