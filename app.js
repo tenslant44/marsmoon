@@ -5,9 +5,9 @@ var count=document.getElementById("gameCount");
 var games=[];
 var active="all";
 var categories=[
- ["all","ALL GAMES"],["racing","RACING"],["platformer","PLATFORMERS"],
+ ["all","ALL GAMES"],["racing","RACING"],["platformer","PLATFORMERS"],["sports","SPORTS"],["board","BOARD GAMES"],
  ["party","PARTY"],["arcade","ARCADE"],["action","ACTION"],
- ["adventure","ADVENTURE"],["puzzle","PUZZLE"],["casual","CASUAL"],["sandbox","SANDBOX"],["websim","WEBSIM"],["collection","COLLECTIONS"]
+ ["adventure","ADVENTURE"],["puzzle","PUZZLE"],["casual","CASUAL"],["sandbox","SANDBOX"],["word","WORD"],["education","EDUCATION"],["music","MUSIC"],["creative","CREATIVE"],["websim","WEBSIM"],["collection","COLLECTIONS"]
 ];
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function makeFilters(){

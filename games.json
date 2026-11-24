@@ -5,7 +5,12 @@
       "title": "Meccha Chameleon",
       "description": "A colorful 3D hide-and-seek party game with maps, roles, bots, and custom paint options.",
       "category": "party",
-      "tags": ["chameleon", "hide and seek", "3d", "party"],
+      "tags": [
+        "chameleon",
+        "hide and seek",
+        "3d",
+        "party"
+      ],
       "symbol": "め",
       "theme": "chameleon",
       "path": "games/meccha-chameleon/index.html",
@@ -17,7 +22,11 @@
       "title": "Sonic Afterimage",
       "description": "A Sonic-inspired platform adventure with zones, bosses, hazards, cutscenes, and save systems.",
       "category": "platformer",
-      "tags": ["sonic", "platformer", "adventure"],
+      "tags": [
+        "sonic",
+        "platformer",
+        "adventure"
+      ],
       "symbol": "S",
       "theme": "sonic",
       "thumbnail": "games/sonic-afterimage/uploads/image.png",
@@ -30,7 +39,12 @@
       "title": "Wunderkart DX",
       "description": "A 3D kart racer with tracks, vehicles, ghost data, and multiplayer systems.",
       "category": "racing",
-      "tags": ["kart", "racing", "3d", "ghosts"],
+      "tags": [
+        "kart",
+        "racing",
+        "3d",
+        "ghosts"
+      ],
       "symbol": "🏁",
       "theme": "kart",
       "thumbnail": "games/wunderkart-dx/uploads/image.png",
@@ -43,7 +57,11 @@
       "title": "Bopimo Web Builds",
       "description": "A collection of browser builds, prototypes, and experimental Bopimo clients.",
       "category": "collection",
-      "tags": ["bopimo", "browser builds", "prototypes"],
+      "tags": [
+        "bopimo",
+        "browser builds",
+        "prototypes"
+      ],
       "symbol": "B",
       "theme": "bopimo",
       "path": "games/bopimo-web-builds/index.html",
@@ -55,7 +73,11 @@
       "title": "Russian Fortnite",
       "description": "V3. Try it out.",
       "category": "websim",
-      "tags": ["3D", "Gore", "WebSim"],
+      "tags": [
+        "3D",
+        "Gore",
+        "WebSim"
+      ],
       "symbol": "🪆",
       "path": "games/russianv3-main/index.html",
       "status": "AVAILABLE",
@@ -66,7 +88,12 @@
       "title": "Slope",
       "description": "The ball game where you roll down a hill avoiding shit",
       "category": "arcade",
-      "tags": ["3D", "Arcade", "Slope", "Balls"],
+      "tags": [
+        "3D",
+        "Arcade",
+        "Slope",
+        "Balls"
+      ],
       "symbol": "⚽",
       "path": "games/Slope/index.html",
       "status": "AVAILABLE"
@@ -76,10 +103,173 @@
       "title": "2048",
       "description": "The original 2048 browser game by Gabriele Cirulli, stored locally with its original HTML, JavaScript, CSS, fonts, and assets.",
       "category": "puzzle",
-      "tags": ["numbers", "logic", "tiles", "classic", "original source"],
+      "tags": [
+        "numbers",
+        "logic",
+        "tiles",
+        "classic",
+        "original source"
+      ],
       "symbol": "2048",
       "path": "games/2048/index.html",
       "source": "https://github.com/gabrielecirulli/2048",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "02-snake",
+      "title": "Snake",
+      "description": "A classic grid-based snake game.",
+      "category": "arcade",
+      "tags": [
+        "arcade",
+        "classic",
+        "snake"
+      ],
+      "symbol": "🐍",
+      "path": "games/02-snake/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/02-snake/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "03-breakout",
+      "title": "Breakout",
+      "description": "Bounce the ball to clear the brick wall.",
+      "category": "arcade",
+      "tags": [
+        "arcade",
+        "brick breaker"
+      ],
+      "symbol": "▤",
+      "path": "games/03-breakout/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/03-breakout/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "04-pong",
+      "title": "Pong",
+      "description": "A two-paddle arcade game against a computer opponent.",
+      "category": "arcade",
+      "tags": [
+        "arcade",
+        "sports",
+        "paddle"
+      ],
+      "symbol": "🏓",
+      "path": "games/04-pong/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/04-pong/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "06-memory-match",
+      "title": "Memory Match",
+      "description": "Flip cards and find matching pairs.",
+      "category": "casual",
+      "tags": [
+        "memory",
+        "cards",
+        "casual"
+      ],
+      "symbol": "🧠",
+      "path": "games/06-memory-match/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/06-memory-match/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "07-whack-a-mole",
+      "title": "Whack-a-Mole",
+      "description": "Test your timing in a quick reaction arcade game.",
+      "category": "arcade",
+      "tags": [
+        "arcade",
+        "reaction"
+      ],
+      "symbol": "🔨",
+      "path": "games/07-whack-a-mole/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/07-whack-a-mole/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "10-tic-tac-toe-ai",
+      "title": "Tic-Tac-Toe",
+      "description": "Play the classic three-in-a-row game against an AI opponent.",
+      "category": "board",
+      "tags": [
+        "board",
+        "strategy"
+      ],
+      "symbol": "✕",
+      "path": "games/10-tic-tac-toe-ai/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/10-tic-tac-toe-ai/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "11-simon-says",
+      "title": "Simon Says",
+      "description": "Repeat the growing sequence of lights and sounds.",
+      "category": "music",
+      "tags": [
+        "music",
+        "memory",
+        "sequence"
+      ],
+      "symbol": "🎵",
+      "path": "games/11-simon-says/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/11-simon-says/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "17-lunar-lander",
+      "title": "Lunar Lander",
+      "description": "Guide a lander down to the surface with careful control.",
+      "category": "arcade",
+      "tags": [
+        "arcade",
+        "physics",
+        "space"
+      ],
+      "symbol": "🌙",
+      "path": "games/17-lunar-lander/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/17-lunar-lander/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "18-helicopter",
+      "title": "Helicopter Cave Flyer",
+      "description": "Navigate a helicopter through a scrolling cave.",
+      "category": "arcade",
+      "tags": [
+        "arcade",
+        "flight",
+        "runner"
+      ],
+      "symbol": "🚁",
+      "path": "games/18-helicopter/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/18-helicopter/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "19-stack-tower",
+      "title": "Stack Tower",
+      "description": "Stack moving blocks as high as you can.",
+      "category": "arcade",
+      "tags": [
+        "arcade",
+        "timing",
+        "stacking"
+      ],
+      "symbol": "🏗️",
+      "path": "games/19-stack-tower/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/19-stack-tower/index.html",
       "sourceLabel": "ORIGINAL SOURCE",
       "status": "LOCAL BUILD"
     }
