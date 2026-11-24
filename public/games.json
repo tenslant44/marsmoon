@@ -1,18 +1,6 @@
 {
   "games": [
     {
-      "id": "sonic-afterimage",
-      "title": "Sonic Afterimage",
-      "description": "A fast side-scrolling platform adventure with custom levels, bosses, effects, and classic-style controls.",
-      "category": "platformer",
-      "tags": ["sonic", "platformer", "retro"],
-      "theme": "sonic",
-      "symbol": "S",
-      "path": "./games/sonic-afterimage/index.html",
-      "source": "https://github.com/tenslant44/Sonic-Afterimage",
-      "status": "LOCAL BUILD"
-    },
-    {
       "id": "meccha-chameleon",
       "title": "Meccha Chameleon",
       "description": "A colorful 3D hide-and-seek party game with maps, roles, bots, and custom paint options.",
@@ -22,6 +10,18 @@
       "symbol": "め",
       "path": "./games/meccha-chameleon/index.html",
       "source": "https://github.com/tenslant44/giggy",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "click-lab",
+      "title": "Click Lab",
+      "description": "An incremental energy game: upgrade your generator, unlock achievements, and save progress locally.",
+      "category": "arcade",
+      "tags": ["incremental", "clicker", "idle", "arcade"],
+      "theme": "clicklab",
+      "symbol": "ϟ",
+      "path": "./games/click-lab/index.html",
+      "source": "https://github.com/tenslant44/shitlab",
       "status": "LOCAL BUILD"
     }
   ]
