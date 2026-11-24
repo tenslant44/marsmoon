@@ -5,12 +5,7 @@
       "title": "Meccha Chameleon",
       "description": "A colorful 3D hide-and-seek party game with maps, roles, bots, and custom paint options.",
       "category": "party",
-      "tags": [
-        "chameleon",
-        "hide and seek",
-        "3d",
-        "party"
-      ],
+      "tags": ["chameleon", "hide and seek", "3d", "party"],
       "symbol": "め",
       "theme": "chameleon",
       "path": "games/meccha-chameleon/index.html",
@@ -22,11 +17,7 @@
       "title": "Sonic Afterimage",
       "description": "A Sonic-inspired platform adventure with zones, bosses, hazards, cutscenes, and save systems.",
       "category": "platformer",
-      "tags": [
-        "sonic",
-        "platformer",
-        "adventure"
-      ],
+      "tags": ["sonic", "platformer", "adventure"],
       "symbol": "S",
       "theme": "sonic",
       "thumbnail": "games/sonic-afterimage/uploads/image.png",
@@ -39,12 +30,7 @@
       "title": "Wunderkart DX",
       "description": "A 3D kart racer with tracks, vehicles, ghost data, and multiplayer systems.",
       "category": "racing",
-      "tags": [
-        "kart",
-        "racing",
-        "3d",
-        "ghosts"
-      ],
+      "tags": ["kart", "racing", "3d", "ghosts"],
       "symbol": "🏁",
       "theme": "kart",
       "thumbnail": "games/wunderkart-dx/uploads/image.png",
@@ -57,11 +43,7 @@
       "title": "Bopimo Web Builds",
       "description": "A collection of browser builds, prototypes, and experimental Bopimo clients.",
       "category": "collection",
-      "tags": [
-        "bopimo",
-        "browser builds",
-        "prototypes"
-      ],
+      "tags": ["bopimo", "browser builds", "prototypes"],
       "symbol": "B",
       "theme": "bopimo",
       "path": "games/bopimo-web-builds/index.html",
@@ -73,27 +55,18 @@
       "title": "Russian Fortnite",
       "description": "V3. Try it out.",
       "category": "websim",
-      "tags": [
-        "3D",
-        "Gore",
-        "WebSim"
-      ],
+      "tags": ["3D", "Gore", "WebSim"],
       "symbol": "🪆",
       "path": "games/russianv3-main/index.html",
       "status": "AVAILABLE",
-      "thumbnail": "games/russianv3-main /RussianFlagGIF.gif"
+      "thumbnail": "games/russianv3-main/RussianFlagGIF.gif"
     },
     {
       "id": "slope",
       "title": "Slope",
       "description": "The ball game where you roll down a hill avoiding shit",
       "category": "arcade",
-      "tags": [
-        "3D",
-        "Arcade",
-        "Slope",
-        "Balls"
-      ],
+      "tags": ["3D", "Arcade", "Slope", "Balls"],
       "symbol": "⚽",
       "path": "games/Slope/index.html",
       "status": "AVAILABLE"
@@ -101,131 +74,14 @@
     {
       "id": "2048",
       "title": "2048",
-      "description": "Slide numbered tiles and merge matching values to build the 2048 tile.",
+      "description": "The original 2048 browser game by Gabriele Cirulli, stored locally with its original HTML, JavaScript, CSS, fonts, and assets.",
       "category": "puzzle",
-      "tags": [
-        "numbers",
-        "logic",
-        "tiles",
-        "classic"
-      ],
+      "tags": ["numbers", "logic", "tiles", "classic", "original source"],
       "symbol": "2048",
-      "path": "https://play2048.co/",
+      "path": "games/2048/index.html",
       "source": "https://github.com/gabrielecirulli/2048",
-      "status": "EXTERNAL WEB GAME"
-    },
-    {
-      "id": "tetris",
-      "title": "Tetris",
-      "description": "The official browser version of the classic falling-block puzzle.",
-      "category": "puzzle",
-      "tags": [
-        "blocks",
-        "classic",
-        "puzzle"
-      ],
-      "symbol": "▦",
-      "path": "https://play.tetris.com/",
-      "source": "https://tetris.com/",
-      "sourceLabel": "OFFICIAL",
-      "status": "EXTERNAL WEB GAME"
-    },
-    {
-      "id": "snake",
-      "title": "Snake",
-      "description": "A retro arcade classic: guide the growing snake and collect food without running into yourself.",
-      "category": "arcade",
-      "tags": [
-        "retro",
-        "classic",
-        "high score"
-      ],
-      "symbol": "🐍",
-      "path": "https://playsnake.org/",
-      "status": "EXTERNAL WEB GAME"
-    },
-    {
-      "id": "cookie-clicker",
-      "title": "Cookie Clicker",
-      "description": "An incremental game about baking cookies, buying upgrades, and building a gigantic cookie operation.",
-      "category": "casual",
-      "tags": [
-        "idle",
-        "incremental",
-        "clicker"
-      ],
-      "symbol": "🍪",
-      "path": "https://orteil.dashnet.org/cookieclicker/",
-      "source": "https://www.dashnet.org/",
-      "sourceLabel": "CREATOR",
-      "status": "EXTERNAL WEB GAME"
-    },
-    {
-      "id": "slow-roads",
-      "title": "Slow Roads",
-      "description": "An endless, procedurally generated 3D driving game with scenery and no finish line.",
-      "category": "racing",
-      "tags": [
-        "3d",
-        "driving",
-        "procedural",
-        "relaxing"
-      ],
-      "symbol": "🚗",
-      "path": "https://slow-roads.github.io/",
-      "source": "https://anslo.dev/",
-      "sourceLabel": "CREATOR",
-      "status": "EXTERNAL WEB GAME"
-    },
-    {
-      "id": "sandspiel",
-      "title": "Sandspiel",
-      "description": "A falling-sand sandbox where you experiment with materials and watch them interact.",
-      "category": "sandbox",
-      "tags": [
-        "sandbox",
-        "simulation",
-        "creative",
-        "physics"
-      ],
-      "symbol": "⏳",
-      "path": "https://sandspiel.club/",
-      "source": "https://github.com/MaxBittker/sandspiel",
-      "status": "EXTERNAL WEB GAME"
-    },
-    {
-      "id": "little-alchemy-2",
-      "title": "Little Alchemy 2",
-      "description": "Combine elements to discover new items in a creative crafting puzzle.",
-      "category": "puzzle",
-      "tags": [
-        "crafting",
-        "discovery",
-        "elements",
-        "logic"
-      ],
-      "symbol": "⚗",
-      "path": "https://littlealchemy2.com/",
-      "source": "https://recloak.com/",
-      "sourceLabel": "CREATOR",
-      "status": "EXTERNAL WEB GAME"
-    },
-    {
-      "id": "crossy-road",
-      "title": "Crossy Road",
-      "description": "Hop through roads, rivers, and railways in the browser edition of the voxel arcade game.",
-      "category": "arcade",
-      "tags": [
-        "voxel",
-        "endless",
-        "arcade",
-        "skill"
-      ],
-      "symbol": "🐔",
-      "path": "https://poki.com/en/g/crossy-road",
-      "source": "https://www.crossyroad.com/",
-      "sourceLabel": "OFFICIAL",
-      "status": "EXTERNAL WEB GAME"
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
     }
   ]
 }
