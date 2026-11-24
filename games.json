@@ -574,6 +574,85 @@
       "source": "https://github.com/NnopponS/100-games/blob/main/60-math-sprint/index.html",
       "sourceLabel": "ORIGINAL SOURCE",
       "status": "LOCAL BUILD"
+    },
+    {
+      "id": "61-word-scramble",
+      "title": "Word Scramble",
+      "description": "Unscramble the letters to find each word.",
+      "category": "word",
+      "tags": [
+        "word",
+        "puzzle"
+      ],
+      "symbol": "🔤",
+      "path": "games/61-word-scramble/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/61-word-scramble/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "62-flags-quiz",
+      "title": "Flags Quiz",
+      "description": "Identify countries from their flags.",
+      "category": "education",
+      "tags": [
+        "education",
+        "geography",
+        "quiz"
+      ],
+      "symbol": "🌍",
+      "path": "games/62-flags-quiz/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/62-flags-quiz/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "65-color-flood",
+      "title": "Color Flood",
+      "description": "Fill the board with one color using as few moves as possible.",
+      "category": "puzzle",
+      "tags": [
+        "puzzle",
+        "logic",
+        "colors"
+      ],
+      "symbol": "🎨",
+      "path": "games/65-color-flood/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/65-color-flood/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "67-gravity-flip",
+      "title": "Gravity Flip Runner",
+      "description": "Flip gravity to navigate an obstacle course.",
+      "category": "arcade",
+      "tags": [
+        "arcade",
+        "runner",
+        "physics"
+      ],
+      "symbol": "↕️",
+      "path": "games/67-gravity-flip/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/67-gravity-flip/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
+    },
+    {
+      "id": "68-pixel-painter",
+      "title": "Pixel Painter",
+      "description": "Create pixel art on a simple digital canvas.",
+      "category": "creative",
+      "tags": [
+        "creative",
+        "art",
+        "pixel"
+      ],
+      "symbol": "🖌️",
+      "path": "games/68-pixel-painter/index.html",
+      "source": "https://github.com/NnopponS/100-games/blob/main/68-pixel-painter/index.html",
+      "sourceLabel": "ORIGINAL SOURCE",
+      "status": "LOCAL BUILD"
     }
   ]
 }

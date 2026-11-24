@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Scramble</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0a0d1f;
+    color: #eee;
+    padding: 16px;
+    overflow-x: hidden;
+    position: relative;
+  }
+  /* animated aurora backdrop */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: -20%;
+    background:
+      radial-gradient(40% 50% at 20% 25%, rgba(239, 71, 111, 0.16), transparent 70%),
+      radial-gradient(45% 55% at 80% 20%, rgba(255, 209, 102, 0.12), transparent 70%),
+      radial-gradient(50% 60% at 55% 85%, rgba(6, 214, 160, 0.10), transparent 70%),
+      linear-gradient(135deg, #12142e 0%, #0d1230 50%, #0a1c3f 100%);
+    animation: aurora 18s ease-in-out infinite alternate;
+    z-index: -2;
+  }
+  @keyframes aurora {
+    from { transform: rotate(-2deg) scale(1); }
+    to   { transform: rotate(2deg) scale(1.08); }
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 40%, transparent 55%, rgba(0,0,0,0.5) 100%);
+    z-index: -1;
+    pointer-events: none;
+  }
+  .game {
+    width: 100%;
+    max-width: 540px;
+    background: linear-gradient(165deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03) 60%);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 22px;
+    padding: 30px 28px;
+    backdrop-filter: blur(14px);
+    box-shadow:
+      0 24px 70px rgba(0,0,0,0.55),
+      inset 0 1px 0 rgba(255,255,255,0.12);
+    animation: cardIn 0.5s cubic-bezier(.2,.9,.3,1.2);
+  }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(18px) scale(0.97); }
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.75rem;
+    letter-spacing: 4px;
+    margin-bottom: 18px;
+    font-weight: 800;
+    background: linear-gradient(90deg, #ffd166, #ef476f 55%, #c77dff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 14px rgba(239, 71, 111, 0.35));
+  }
+  .stats {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .stat {
+    flex: 1;
+    text-align: center;
+    background: rgba(4, 8, 20, 0.45);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 10px 4px;
+  }
+  .stat .label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 1.2px; color: #8a99b8; }
+  .stat .value { font-size: 1.35rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+  #score { color: #ffd166; text-shadow: 0 0 12px rgba(255, 209, 102, 0.45); }
+  #streak { color: #f472b6; }
+  #timer.low { color: #ef476f; animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: 0.35; transform: scale(1.12); } }
+  .scrambled {
+    display: flex;
+    justify-content: center;
+    gap: 7px;
+    flex-wrap: wrap;
+    margin: 22px 0;
+    min-height: 56px;
+  }
+  .tile {
+    width: 44px; height: 52px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; font-weight: 800; text-transform: uppercase;
+    color: #eaf2ff;
+    background: linear-gradient(180deg, #46608c, #2b3a56 80%);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-bottom: 4px solid #16233a;
+    border-radius: 10px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.35);
+    animation: pop 0.34s cubic-bezier(.3,1.4,.5,1.1) backwards;
+    transition: transform 0.15s;
+  }
+  .tile:hover { transform: translateY(-3px); }
+  @keyframes pop { from { transform: scale(0.4) rotate(-10deg); opacity: 0; } }
+  .hint {
+    text-align: center;
+    min-height: 24px;
+    font-style: italic;
+    color: #ffd166;
+    margin-bottom: 18px;
+    font-size: 0.95rem;
+    text-shadow: 0 0 10px rgba(255, 209, 102, 0.3);
+  }
+  input[type=text] {
+    width: 100%;
+    padding: 14px;
+    font-size: 1.15rem;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    border: 2px solid rgba(255,255,255,0.18);
+    border-radius: 12px;
+    background: rgba(3, 6, 16, 0.55);
+    color: #fff;
+    outline: none;
+    margin-bottom: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input[type=text]:focus {
+    border-color: #ffd166;
+    box-shadow: 0 0 0 3px rgba(255, 209, 102, 0.15), 0 0 20px rgba(255, 209, 102, 0.18);
+  }
+  input[type=text]:disabled { opacity: 0.5; }
+  .buttons { display: flex; gap: 10px; }
+  button {
+    flex: 1;
+    padding: 12px 6px;
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.1s, filter 0.15s, box-shadow 0.15s;
+    color: #1a1a2e;
+    font-family: inherit;
+  }
+  button:hover { filter: brightness(1.12); transform: translateY(-1px); }
+  button:active { transform: scale(0.96); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  #submitBtn { background: linear-gradient(180deg, #0be0a8, #06b586); color: #052b20; box-shadow: 0 4px 16px rgba(6, 214, 160, 0.35); }
+  #hintBtn { background: linear-gradient(180deg, #ffd166, #f0b429); box-shadow: 0 4px 16px rgba(255, 209, 102, 0.25); }
+  #skipBtn { background: linear-gradient(180deg, #8ecae6, #5ea8d0); box-shadow: 0 4px 16px rgba(142, 202, 230, 0.25); }
+  #restartBtn { background: linear-gradient(180deg, #ef476f, #d12656); color: #fff; box-shadow: 0 4px 16px rgba(239, 71, 111, 0.3); }
+  .feedback {
+    text-align: center;
+    min-height: 26px;
+    font-weight: 700;
+    margin-top: 14px;
+    font-size: 1rem;
+  }
+  .feedback.good { color: #06d6a0; text-shadow: 0 0 12px rgba(6, 214, 160, 0.5); }
+  .feedback.bad { color: #ef476f; }
+  .shake { animation: shake 0.4s; }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%,60% { transform: translateX(-8px); }
+    40%,80% { transform: translateX(8px); }
+  }
+  .overlay {
+    display: none;
+    text-align: center;
+    padding: 20px 0;
+    animation: cardIn 0.4s cubic-bezier(.2,.9,.3,1.2);
+  }
+  .overlay.show { display: block; }
+  .overlay h2 { font-size: 1.9rem; margin-bottom: 10px; letter-spacing: 2px; }
+  .overlay p { color: #9ab; margin-bottom: 8px; }
+  .overlay .final {
+    font-size: 2.8rem; font-weight: 900; margin: 12px 0 6px;
+    background: linear-gradient(90deg, #ffd166, #ffb84d);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 18px rgba(255, 209, 102, 0.4));
+  }
+  .overlay .best { color: #8a99b8; font-size: 0.9rem; margin-bottom: 18px; }
+  .overlay .best b { color: #f472b6; }
+  .play-area.hide { display: none; }
+  .newbest {
+    display: inline-block;
+    color: #0a0d1f;
+    background: linear-gradient(90deg, #ffd166, #f472b6);
+    font-weight: 900;
+    font-size: 0.75rem;
+    letter-spacing: 1.5px;
+    padding: 3px 12px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+    animation: pulse 0.9s infinite;
+  }
+</style>
+</head>
+<body>
+  <div class="game">
+    <h1>WORD SCRAMBLE</h1>
+    <div class="stats">
+      <div class="stat"><div class="label">Score</div><div class="value" id="score">0</div></div>
+      <div class="stat"><div class="label">Time</div><div class="value" id="timer">60</div></div>
+      <div class="stat"><div class="label">Streak</div><div class="value" id="streak">0</div></div>
+      <div class="stat"><div class="label">Hints</div><div class="value" id="hintsLeft">3</div></div>
+    </div>
+
+    <div class="play-area" id="playArea">
+      <div class="scrambled" id="scrambled"></div>
+      <div class="hint" id="hintText">Press Hint for a clue (-5 pts)</div>
+      <input type="text" id="guess" placeholder="Your answer..." autocomplete="off" maxlength="20">
+      <div class="buttons">
+        <button id="submitBtn">Submit</button>
+        <button id="hintBtn">Hint</button>
+        <button id="skipBtn">Skip</button>
+        <button id="restartBtn">Restart</button>
+      </div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+
+    <div class="overlay" id="overlay">
+      <h2 id="overlayTitle">Time's Up!</h2>
+      <div id="newBestBadge" style="display:none"><span class="newbest">NEW BEST</span></div>
+      <p>You unscrambled <span id="finalSolved">0</span> word(s)</p>
+      <div class="final" id="finalScore">0</div>
+      <div class="best">Best: <b id="bestScore">0</b></div>
+      <div class="buttons"><button id="playAgainBtn" style="background:linear-gradient(180deg,#0be0a8,#06b586);color:#052b20">Play Again</button></div>
+    </div>
+  </div>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ---------- procedural SFX (respects the overlay's SFX preference) ---------- */
+  var Sfx = (function () {
+    var ctx = null;
+    function ac() {
+      if (!ctx) { try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+      if (ctx && ctx.state === 'suspended') { try { ctx.resume(); } catch (e) {} }
+      return ctx;
+    }
+    function on() { try { return localStorage.getItem('aaa_sfx') !== '0'; } catch (e) { return true; } }
+    function tone(f, d, type, vol, slide, delay) {
+      if (!on()) return;
+      var c = ac(); if (!c) return;
+      try {
+        var t = c.currentTime + (delay || 0);
+        var o = c.createOscillator(), g = c.createGain();
+        o.type = type || 'sine';
+        o.frequency.setValueAtTime(Math.max(30, f), t);
+        if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, slide), t + d);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.linearRampToValueAtTime(vol || 0.05, t + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.0006, t + d);
+        o.connect(g); g.connect(c.destination);
+        o.start(t); o.stop(t + d + 0.05);
+      } catch (e) {}
+    }
+    return {
+      tone: tone,
+      unlock: ac,
+      correct: function (streak) {
+        var base = 523 * Math.pow(1.12, Math.min(8, streak || 0));
+        tone(base, 0.1, 'triangle', 0.07, base * 1.3);
+        tone(base * 1.5, 0.14, 'sine', 0.06, null, 0.07);
+      },
+      wrong: function () { tone(220, 0.16, 'square', 0.045, 130); tone(180, 0.18, 'square', 0.035, 110, 0.06); },
+      hint: function () { tone(880, 0.09, 'sine', 0.045, 1180); },
+      skip: function () { tone(500, 0.14, 'triangle', 0.04, 240); },
+      deal: function () { tone(340, 0.07, 'triangle', 0.03, 500); },
+      tick: function () { tone(980, 0.04, 'sine', 0.022); },
+      start: function () { tone(392, 0.1, 'triangle', 0.05, 523); tone(659, 0.14, 'triangle', 0.05, null, 0.09); },
+      over: function () { [392, 330, 262, 196].forEach(function (f, i) { tone(f, 0.22, 'sawtooth', 0.04, null, i * 0.11); }); }
+    };
+  })();
+
+  var WORDS = [
+    { w: 'elephant', h: 'The largest land animal' },
+    { w: 'computer', h: 'Machine you are using right now' },
+    { w: 'pizza', h: 'Italian dish with cheese and tomato' },
+    { w: 'rainbow', h: 'Colorful arc after rain' },
+    { w: 'guitar', h: 'Six-stringed instrument' },
+    { w: 'mountain', h: 'Everest is the tallest one' },
+    { w: 'bicycle', h: 'Two-wheeled pedal vehicle' },
+    { w: 'chocolate', h: 'Sweet treat made from cocoa' },
+    { w: 'airplane', h: 'It flies passengers through the sky' },
+    { w: 'library', h: 'Place full of books' },
+    { w: 'dolphin', h: 'Smart ocean mammal' },
+    { w: 'volcano', h: 'It erupts with lava' },
+    { w: 'telescope', h: 'Used to look at stars' },
+    { w: 'sandwich', h: 'Lunch between two slices of bread' },
+    { w: 'penguin', h: 'Flightless bird in Antarctica' },
+    { w: 'keyboard', h: 'You type on it' },
+    { w: 'umbrella', h: 'Keeps you dry in rain' },
+    { w: 'dinosaur', h: 'Extinct reptile like T-Rex' },
+    { w: 'hospital', h: 'Where doctors work' },
+    { w: 'sunflower', h: 'Tall yellow flower that faces the sun' },
+    { w: 'football', h: 'Sport with a goal and a round ball' },
+    { w: 'butterfly', h: 'Insect that was once a caterpillar' },
+    { w: 'lighthouse', h: 'Guides ships at night' },
+    { w: 'treasure', h: 'Pirates bury it' },
+    { w: 'calendar', h: 'Shows days and months' },
+    { w: 'microscope', h: 'Makes tiny things look big' },
+    { w: 'astronaut', h: 'Travels to space' },
+    { w: 'waterfall', h: 'Niagara is a famous one' },
+    { w: 'candle', h: 'Wax with a burning wick' },
+    { w: 'pyramid', h: 'Ancient Egyptian structure' }
+  ];
+
+  var GAME_TIME = 60;
+  var MAX_HINTS = 3;
+  var POINTS_PER_WORD = 10;
+  var HINT_COST = 5;
+  var SKIP_PENALTY = 2;
+  var BEST_KEY = 'ws_best';
+
+  var score, timeLeft, solved, hintsLeft, current, timerId, usedIndices, playing, streak;
+  var best = 0;
+  try { best = parseInt(localStorage.getItem(BEST_KEY), 10) || 0; } catch (e) {}
+
+  var scoreEl = document.getElementById('score');
+  var timerEl = document.getElementById('timer');
+  var solvedEl = document.getElementById('streak');
+  var hintsEl = document.getElementById('hintsLeft');
+  var scrambledEl = document.getElementById('scrambled');
+  var hintTextEl = document.getElementById('hintText');
+  var guessEl = document.getElementById('guess');
+  var feedbackEl = document.getElementById('feedback');
+  var submitBtn = document.getElementById('submitBtn');
+  var hintBtn = document.getElementById('hintBtn');
+  var skipBtn = document.getElementById('skipBtn');
+  var restartBtn = document.getElementById('restartBtn');
+  var playArea = document.getElementById('playArea');
+  var overlay = document.getElementById('overlay');
+  var finalScoreEl = document.getElementById('finalScore');
+  var finalSolvedEl = document.getElementById('finalSolved');
+  var bestScoreEl = document.getElementById('bestScore');
+  var newBestBadge = document.getElementById('newBestBadge');
+  var playAgainBtn = document.getElementById('playAgainBtn');
+
+  function shuffle(str) {
+    var a = str.split('');
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a.join('');
+  }
+
+  function scrambleWord(word) {
+    var s = shuffle(word);
+    var tries = 0;
+    while (s === word && tries < 20) { s = shuffle(word); tries++; }
+    return s;
+  }
+
+  function pickWord() {
+    if (usedIndices.length >= WORDS.length) usedIndices = [];
+    var idx;
+    do { idx = Math.floor(Math.random() * WORDS.length); }
+    while (usedIndices.indexOf(idx) !== -1);
+    usedIndices.push(idx);
+    current = WORDS[idx];
+    renderTiles();
+    hintTextEl.textContent = 'Press Hint for a clue (-' + HINT_COST + ' pts)';
+    guessEl.value = '';
+    guessEl.focus();
+    Sfx.deal();
+  }
+
+  function renderTiles() {
+    scrambledEl.innerHTML = '';
+    var s = scrambleWord(current.w);
+    for (var i = 0; i < s.length; i++) {
+      var d = document.createElement('div');
+      d.className = 'tile';
+      d.textContent = s[i];
+      d.style.animationDelay = (i * 0.045) + 's';
+      scrambledEl.appendChild(d);
+    }
+  }
+
+  function updateStats() {
+    scoreEl.textContent = score;
+    solvedEl.textContent = streak;
+    hintsEl.textContent = hintsLeft;
+    timerEl.textContent = timeLeft;
+    timerEl.className = 'value' + (timeLeft <= 10 ? ' low' : '');
+    timerEl.id = 'timer';
+    hintBtn.disabled = hintsLeft <= 0;
+  }
+
+  function setFeedback(msg, cls) {
+    feedbackEl.textContent = msg;
+    feedbackEl.className = 'feedback' + (cls ? ' ' + cls : '');
+  }
+
+  function submit() {
+    if (!playing) return;
+    var guess = guessEl.value.trim().toLowerCase();
+    if (!guess) return;
+    if (guess === current.w) {
+      streak++;
+      var bonus = Math.min(10, (streak - 1) * 2);
+      score += POINTS_PER_WORD + bonus;
+      solved++;
+      setFeedback('Correct! +' + (POINTS_PER_WORD + bonus) + ' pts' + (streak >= 3 ? ' — STREAK x' + streak + '!' : ''), 'good');
+      Sfx.correct(streak);
+      updateStats();
+      setTimeout(function() { if (playing) { pickWord(); setFeedback(''); } }, 500);
+    } else {
+      streak = 0;
+      setFeedback('Not quite — try again!', 'bad');
+      Sfx.wrong();
+      updateStats();
+      guessEl.classList.remove('shake');
+      void guessEl.offsetWidth;
+      guessEl.classList.add('shake');
+      guessEl.select();
+    }
+  }
+
+  function useHint() {
+    if (!playing || hintsLeft <= 0) return;
+    hintsLeft--;
+    score = Math.max(0, score - HINT_COST);
+    hintTextEl.textContent = 'Hint: ' + current.h;
+    Sfx.hint();
+    updateStats();
+    guessEl.focus();
+  }
+
+  function skip() {
+    if (!playing) return;
+    score = Math.max(0, score - SKIP_PENALTY);
+    streak = 0;
+    setFeedback('Skipped: ' + current.w.toUpperCase() + ' (-' + SKIP_PENALTY + ' pts)', 'bad');
+    Sfx.skip();
+    updateStats();
+    setTimeout(function() { if (playing) { pickWord(); setFeedback(''); } }, 800);
+  }
+
+  function tick() {
+    timeLeft--;
+    if (timeLeft <= 10 && timeLeft > 0) Sfx.tick();
+    updateStats();
+    if (timeLeft <= 0) endGame();
+  }
+
+  function endGame() {
+    playing = false;
+    clearInterval(timerId);
+    playArea.classList.add('hide');
+    overlay.classList.add('show');
+    finalScoreEl.textContent = score;
+    finalSolvedEl.textContent = solved;
+    var isBest = score > best;
+    if (isBest) {
+      best = score;
+      try { localStorage.setItem(BEST_KEY, String(best)); } catch (e) {}
+    }
+    newBestBadge.style.display = isBest && score > 0 ? '' : 'none';
+    bestScoreEl.textContent = best;
+    Sfx.over();
+    if (window.AAA && isBest && score > 0) { AAA.sfx.win(); AAA.flash(0.22); }
+  }
+
+  function startGame() {
+    score = 0; timeLeft = GAME_TIME; solved = 0; hintsLeft = MAX_HINTS; streak = 0;
+    usedIndices = [];
+    playing = true;
+    clearInterval(timerId);
+    overlay.classList.remove('show');
+    playArea.classList.remove('hide');
+    setFeedback('');
+    updateStats();
+    pickWord();
+    Sfx.start();
+    timerId = setInterval(tick, 1000);
+  }
+
+  submitBtn.addEventListener('click', submit);
+  hintBtn.addEventListener('click', useHint);
+  skipBtn.addEventListener('click', skip);
+  restartBtn.addEventListener('click', startGame);
+  playAgainBtn.addEventListener('click', startGame);
+  guessEl.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') submit();
+  });
+  window.addEventListener('pointerdown', function once() {
+    Sfx.unlock();
+    window.removeEventListener('pointerdown', once);
+  });
+
+  startGame();
+})();
+</script>
+
+<script src="../assets/aaa-arcade.js" defer></script>
+</body>
+</html>

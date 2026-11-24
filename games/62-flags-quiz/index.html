@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Flags Quiz</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{min-height:100vh;background:#070a18;color:#fff;font-family:system-ui,-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;padding:16px;position:relative;overflow-x:hidden}
+  body::before{
+    content:"";position:fixed;inset:-20%;z-index:-2;
+    background:
+      radial-gradient(42% 52% at 18% 22%, rgba(56,189,248,.14), transparent 70%),
+      radial-gradient(45% 55% at 82% 18%, rgba(168,85,247,.13), transparent 70%),
+      radial-gradient(55% 60% at 55% 88%, rgba(244,63,94,.10), transparent 70%),
+      linear-gradient(135deg,#0d1530,#12123a 55%,#0a1e42);
+    animation:aurora 20s ease-in-out infinite alternate;
+  }
+  @keyframes aurora{from{transform:rotate(-2deg) scale(1)}to{transform:rotate(2deg) scale(1.08)}}
+  body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:radial-gradient(ellipse at 50% 40%,transparent 55%,rgba(0,0,0,.5))}
+  .card{width:min(540px,100%);background:linear-gradient(165deg,rgba(21,30,58,.94),rgba(11,17,38,.94));border:1px solid rgba(255,255,255,.13);border-radius:22px;padding:26px;box-shadow:0 26px 70px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.08);display:flex;flex-direction:column;gap:16px;animation:cardIn .5s cubic-bezier(.2,.9,.3,1.2)}
+  @keyframes cardIn{from{opacity:0;transform:translateY(18px) scale(.97)}}
+  h1{text-align:center;font-size:1.25rem;letter-spacing:4px;font-weight:800;background:linear-gradient(90deg,#38bdf8,#a78bfa 60%,#f472b6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 12px rgba(56,189,248,.35))}
+  .top{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:.9rem;gap:6px}
+  .pill{background:rgba(4,8,20,.5);border:1px solid rgba(255,255,255,.08);padding:7px 12px;border-radius:999px;white-space:nowrap}
+  .pill b{color:#38bdf8;font-variant-numeric:tabular-nums}
+  .pill .hot{color:#f472b6}
+  .flame{vertical-align:-1px;margin-left:4px}
+  .flag-box{height:200px;background:linear-gradient(160deg,#0b1226,#0d1730);border-radius:16px;display:flex;align-items:center;justify-content:center;padding:20px;border:1px solid rgba(255,255,255,.09);position:relative;overflow:hidden}
+  .flag-box::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 70% at 50% 30%,rgba(56,189,248,.07),transparent 70%);pointer-events:none}
+  .flag-box svg{width:240px;height:150px;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.08);animation:flagIn .4s cubic-bezier(.2,.9,.3,1.2)}
+  @keyframes flagIn{from{opacity:0;transform:translateX(26px) rotate(1.5deg) scale(.94)}}
+  .choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .choice{padding:14px 12px;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:linear-gradient(180deg,#233150,#1a2540);color:#fff;font-weight:700;font-size:.95rem;cursor:pointer;transition:.15s;font-family:inherit;animation:choiceIn .35s ease backwards}
+  .choice:nth-child(1){animation-delay:.03s}.choice:nth-child(2){animation-delay:.07s}
+  .choice:nth-child(3){animation-delay:.11s}.choice:nth-child(4){animation-delay:.15s}
+  @keyframes choiceIn{from{opacity:0;transform:translateY(8px)}}
+  .choice:hover:not(:disabled){background:#31436e;transform:translateY(-2px);border-color:rgba(56,189,248,.5);box-shadow:0 6px 18px rgba(56,189,248,.18)}
+  .choice.ok{background:linear-gradient(180deg,#16a34a,#128a3e);border-color:#4ade80;box-shadow:0 0 22px rgba(74,222,128,.4)}
+  .choice.bad{background:linear-gradient(180deg,#dc2626,#b91c1c);border-color:#f87171;box-shadow:0 0 22px rgba(248,113,113,.35);animation:shake .35s}
+  .choice:disabled{cursor:default}
+  .choice.dim{opacity:.45}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  .footer{display:flex;justify-content:space-between;align-items:center;color:#94a3b8;font-size:.9rem;gap:10px}
+  .restart{padding:9px 18px;border:none;border-radius:10px;background:linear-gradient(180deg,#38bdf8,#0284c7);color:#041525;font-weight:900;cursor:pointer;font-family:inherit;transition:.15s;box-shadow:0 4px 14px rgba(56,189,248,.3)}
+  .restart:hover{filter:brightness(1.12);transform:translateY(-1px)}
+  .result{text-align:center;padding:6px 4px}
+  .result h2{color:#38bdf8;font-size:1.7rem;margin-bottom:6px;letter-spacing:2px;filter:drop-shadow(0 0 14px rgba(56,189,248,.5))}
+  .result p{color:#cbd5e1}
+  .result .big{font-size:2.2rem;font-weight:900;background:linear-gradient(90deg,#fde047,#fbbf24);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin:8px 0}
+  .newbest{display:inline-block;color:#041525;background:linear-gradient(90deg,#fde047,#f472b6);font-weight:900;font-size:.72rem;letter-spacing:1.5px;padding:3px 12px;border-radius:999px;margin-bottom:6px;animation:blink .9s infinite}
+  @keyframes blink{50%{opacity:.6}}
+  @media (max-width:420px){.top{font-size:.78rem}.pill{padding:6px 9px}}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>FLAGS QUIZ</h1>
+  <div class="top">
+    <div class="pill">Score <b id="score">0</b></div>
+    <div class="pill">Streak <b class="hot" id="streak">0</b><svg class="flame" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M8 1c1 3-3 4.5-3 8a3.5 3.5 0 0 0 7 0c0-2-1.2-3-1.7-4.2C9.4 5.6 9 3.6 8 1z" fill="#fb923c"/><path d="M8.6 8c.9 1 .4 2.6-.6 3.2 1.9-.3 2.7-1.9 2.1-3.4-.3 1-1 1.2-1.5.2z" fill="#fde047"/></svg></div>
+    <div class="pill">Best <b id="best">0</b></div>
+    <div class="pill">Q <b id="qnum">1</b>/15</div>
+  </div>
+  <div class="flag-box" id="flagBox"></div>
+  <div class="choices" id="choices"></div>
+  <div class="footer">
+    <span id="msg">Which country does this flag belong to?</span>
+    <button class="restart" id="restartBtn">Restart</button>
+  </div>
+</div>
+<script>
+(() => {
+  /* ---------- procedural SFX (respects the overlay's SFX preference) ---------- */
+  const Sfx = (() => {
+    let ctx = null;
+    const ac = () => {
+      if (!ctx) { try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+      if (ctx && ctx.state === 'suspended') { try { ctx.resume(); } catch (e) {} }
+      return ctx;
+    };
+    const on = () => { try { return localStorage.getItem('aaa_sfx') !== '0'; } catch (e) { return true; } };
+    const tone = (f, d, type, vol, slide, delay) => {
+      if (!on()) return;
+      const c = ac(); if (!c) return;
+      try {
+        const t = c.currentTime + (delay || 0);
+        const o = c.createOscillator(), g = c.createGain();
+        o.type = type || 'sine';
+        o.frequency.setValueAtTime(Math.max(30, f), t);
+        if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, slide), t + d);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.linearRampToValueAtTime(vol || 0.05, t + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.0006, t + d);
+        o.connect(g); g.connect(c.destination);
+        o.start(t); o.stop(t + d + 0.05);
+      } catch (e) {}
+    };
+    return {
+      unlock: ac,
+      good: s => { const b = 523 * Math.pow(1.1, Math.min(8, s || 0)); tone(b, .1, 'triangle', .07, b * 1.3); tone(b * 1.5, .13, 'sine', .06, null, .07); },
+      bad: () => { tone(210, .16, 'square', .045, 120); tone(160, .2, 'square', .035, 100, .07); },
+      deal: () => tone(392, .07, 'triangle', .035, 560),
+      end: win => { (win ? [523, 659, 784, 1046] : [392, 330, 262, 196]).forEach((f, i) => tone(f, .2, win ? 'triangle' : 'sawtooth', .05, null, i * .1)); }
+    };
+  })();
+
+  const FLAGS = [
+    { name:'Japan', svg:'<rect width="240" height="150" fill="#fff"/><circle cx="120" cy="75" r="42" fill="#bc002d"/>' },
+    { name:'France', svg:'<rect width="80" height="150" fill="#0055a4"/><rect x="80" width="80" height="150" fill="#fff"/><rect x="160" width="80" height="150" fill="#ef4135"/>' },
+    { name:'Italy', svg:'<rect width="80" height="150" fill="#009246"/><rect x="80" width="80" height="150" fill="#fff"/><rect x="160" width="80" height="150" fill="#ce2b37"/>' },
+    { name:'Germany', svg:'<rect width="240" height="50" fill="#000"/><rect y="50" width="240" height="50" fill="#dd0000"/><rect y="100" width="240" height="50" fill="#ffce00"/>' },
+    { name:'Thailand', svg:'<rect width="240" height="150" fill="#a51931"/><rect y="25" width="240" height="100" fill="#f4f5f8"/><rect y="50" width="240" height="50" fill="#2d2a4a"/>' },
+    { name:'Sweden', svg:'<rect width="240" height="150" fill="#006aa7"/><rect x="70" width="28" height="150" fill="#fecc00"/><rect y="61" width="240" height="28" fill="#fecc00"/>' },
+    { name:'Finland', svg:'<rect width="240" height="150" fill="#fff"/><rect x="70" width="32" height="150" fill="#003580"/><rect y="59" width="240" height="32" fill="#003580"/>' },
+    { name:'Switzerland', svg:'<rect width="240" height="150" fill="#d52b1e"/><rect x="104" y="30" width="32" height="90" fill="#fff"/><rect x="75" y="59" width="90" height="32" fill="#fff"/>' },
+    { name:'Poland', svg:'<rect width="240" height="75" fill="#fff"/><rect y="75" width="240" height="75" fill="#dc143c"/>' },
+    { name:'Indonesia', svg:'<rect width="240" height="75" fill="#ce1126"/><rect y="75" width="240" height="75" fill="#fff"/>' },
+    { name:'Netherlands', svg:'<rect width="240" height="50" fill="#ae1c28"/><rect y="50" width="240" height="50" fill="#fff"/><rect y="100" width="240" height="50" fill="#21468b"/>' },
+    { name:'Ukraine', svg:'<rect width="240" height="75" fill="#0057b7"/><rect y="75" width="240" height="75" fill="#ffd700"/>' },
+    { name:'Belgium', svg:'<rect width="80" height="150" fill="#000"/><rect x="80" width="80" height="150" fill="#fae042"/><rect x="160" width="80" height="150" fill="#ed2939"/>' },
+    { name:'Ireland', svg:'<rect width="80" height="150" fill="#169b62"/><rect x="80" width="80" height="150" fill="#fff"/><rect x="160" width="80" height="150" fill="#ff883e"/>' },
+    { name:'Austria', svg:'<rect width="240" height="50" fill="#ed2939"/><rect y="50" width="240" height="50" fill="#fff"/><rect y="100" width="240" height="50" fill="#ed2939"/>' },
+    { name:'Bangladesh', svg:'<rect width="240" height="150" fill="#006a4e"/><circle cx="105" cy="75" r="42" fill="#f42a41"/>' },
+    { name:'Palau', svg:'<rect width="240" height="150" fill="#4aadd6"/><circle cx="105" cy="75" r="42" fill="#ffde00"/>' },
+    { name:'Nigeria', svg:'<rect width="80" height="150" fill="#008751"/><rect x="80" width="80" height="150" fill="#fff"/><rect x="160" width="80" height="150" fill="#008751"/>' },
+    { name:'Denmark', svg:'<rect width="240" height="150" fill="#c60c30"/><rect x="70" width="24" height="150" fill="#fff"/><rect y="63" width="240" height="24" fill="#fff"/>' },
+    { name:'Latvia', svg:'<rect width="240" height="60" fill="#9e3039"/><rect y="60" width="240" height="30" fill="#fff"/><rect y="90" width="240" height="60" fill="#9e3039"/>' }
+  ];
+
+  const flagBox = document.getElementById('flagBox');
+  const choicesEl = document.getElementById('choices');
+  const scoreEl = document.getElementById('score');
+  const streakEl = document.getElementById('streak');
+  const qnumEl = document.getElementById('qnum');
+  const bestEl = document.getElementById('best');
+  const msgEl = document.getElementById('msg');
+
+  let deck = [], idx = 0, score = 0, streak = 0, locked = false, best = 0;
+  try { best = +localStorage.getItem('fq_best') || 0; } catch (e) {}
+  bestEl.textContent = best;
+
+  function shuffle(a) { return [...a].sort(() => Math.random() - 0.5); }
+
+  function start() {
+    deck = shuffle(FLAGS).slice(0, 15);
+    idx = 0; score = 0; streak = 0; locked = false;
+    scoreEl.textContent = '0'; streakEl.textContent = '0';
+    renderQ();
+  }
+
+  function renderQ() {
+    if (idx >= deck.length) {
+      const isBest = score > best;
+      if (isBest) { best = score; try { localStorage.setItem('fq_best', String(best)); } catch (e) {} }
+      bestEl.textContent = best;
+      const grade = score >= 130 ? 'Flag Master!' : score >= 90 ? 'Well Travelled!' : 'Keep Exploring!';
+      flagBox.innerHTML = '<div class="result">' +
+        (isBest ? '<span class="newbest">NEW BEST</span><br>' : '') +
+        '<h2>QUIZ COMPLETE!</h2><div class="big">' + score + ' / 210</div>' +
+        '<p>' + grade + '</p></div>';
+      choicesEl.innerHTML = '';
+      msgEl.textContent = 'Click Restart to play another round!';
+      Sfx.end(true);
+      if (window.AAA && isBest && score > 0) AAA.flash(0.22);
+      return;
+    }
+    locked = false;
+    qnumEl.textContent = idx + 1;
+    const target = deck[idx];
+    flagBox.innerHTML = `<svg viewBox="0 0 240 150">${target.svg}</svg>`;
+    const distractors = shuffle(FLAGS.filter(f => f.name !== target.name)).slice(0, 3);
+    const opts = shuffle([target, ...distractors]);
+    choicesEl.innerHTML = '';
+    msgEl.textContent = 'Which country does this flag belong to?';
+    Sfx.deal();
+    opts.forEach(o => {
+      const b = document.createElement('button');
+      b.className = 'choice';
+      b.textContent = o.name;
+      b.onclick = () => pick(b, o.name === target.name, target.name);
+      choicesEl.appendChild(b);
+    });
+  }
+
+  function pick(btn, ok, rightName) {
+    if (locked) return;
+    locked = true;
+    const btns = [...choicesEl.children];
+    btns.forEach(b => {
+      b.disabled = true;
+      if (b.textContent === rightName) b.classList.add('ok');
+      else b.classList.add('dim');
+    });
+    if (ok) {
+      streak++;
+      const pts = 10 + Math.min(10, (streak - 1) * 2);
+      score += pts;
+      msgEl.textContent = 'Correct! +' + pts + (streak >= 3 ? ' — STREAK x' + streak + '!' : '');
+      btn.classList.remove('dim');
+      Sfx.good(streak);
+    } else {
+      btn.classList.add('bad');
+      btn.classList.remove('dim');
+      streak = 0;
+      msgEl.textContent = `Oops! That was ${rightName}.`;
+      Sfx.bad();
+    }
+    scoreEl.textContent = score;
+    streakEl.textContent = streak;
+    setTimeout(() => { idx++; renderQ(); }, 1050);
+  }
+
+  document.getElementById('restartBtn').onclick = start;
+  window.addEventListener('pointerdown', function once() {
+    Sfx.unlock();
+    window.removeEventListener('pointerdown', once);
+  });
+  start();
+})();
+</script>
+
+<script src="../assets/aaa-arcade.js" defer></script>
+</body>
+</html>
