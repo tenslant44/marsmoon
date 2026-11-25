@@ -1,0 +1,1031 @@
+<meta charset="utf-8">
+<title>OpenRBX Player</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+  /* Layout: the engine canvas fills the window. The toolbar, tabbed panel and engine log live in a
+     debug overlay on the right that the backtick key shows and hides.
+     Palette is taken from the engine's own BrickColor names: Bright blue as the accent, Earth
+     green and Bright red for semantic states, cool greys for the chrome. */
+  :root {
+    --bg: #eceff2;
+    --surface: #ffffff;
+    --surface-2: #f3f5f7;
+    --line: #d2d8de;
+    --fg: #14191f;
+    --fg-muted: #56626d;
+    --accent: #0d69ac;
+    --accent-fg: #ffffff;
+    --accent-soft: #dbeaf6;
+    --danger: #b3261e;
+    --warn: #8a5a00;
+    --ok: #1b7a3a;
+    --stage: #0c1117;
+    --stage-fg: #e8edf2;
+    --display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+    --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101419;
+      --surface: #181e25;
+      --surface-2: #202830;
+      --line: #2c3540;
+      --fg: #e7ebef;
+      --fg-muted: #98a4af;
+      --accent: #4ea5ea;
+      --accent-fg: #07131d;
+      --accent-soft: #17303f;
+      --danger: #ff8f86;
+      --warn: #e5b445;
+      --ok: #5fd37a;
+      --stage: #06090d;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101419;
+    --surface: #181e25;
+    --surface-2: #202830;
+    --line: #2c3540;
+    --fg: #e7ebef;
+    --fg-muted: #98a4af;
+    --accent: #4ea5ea;
+    --accent-fg: #07131d;
+    --accent-soft: #17303f;
+    --danger: #ff8f86;
+    --warn: #e5b445;
+    --ok: #5fd37a;
+    --stage: #06090d;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body { margin: 0; background: #000; color: var(--fg); font: 14px/1.5 var(--body); overflow: hidden; }
+  #status { font: 500 12px var(--mono); color: var(--fg-muted); display: inline-flex; align-items: center; gap: 8px; }
+  #status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--fg-muted); }
+  #status[data-state="live"]::before { background: var(--ok); }
+  #status[data-state="busy"]::before { background: var(--warn); }
+  #status[data-state="error"]::before { background: var(--danger); }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; min-width: 0; }
+
+  /* Stage: the game fills the browser window (not the fullscreen API); everything else floats over it. */
+  .stage { position: fixed; inset: 0; background: #000; overflow: hidden; }
+  canvas#view { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; background: #000; outline: none; cursor: none; touch-action: none; }
+  canvas#view.smooth { image-rendering: auto; }
+  canvas#view.crisp { image-rendering: pixelated; }
+  .stage:not(.live) canvas#view { visibility: hidden; }
+  .focus-hint {
+    position: absolute; left: 12px; bottom: 10px; font: 12px var(--mono); color: var(--stage-fg); z-index: 3;
+    background: color-mix(in srgb, var(--stage) 72%, transparent); padding: 3px 8px; border-radius: 4px;
+    pointer-events: none; opacity: 0; transition: opacity .2s;
+  }
+  .stage.live:not(.focused) .focus-hint { opacity: 1; }
+
+  .boot {
+    position: absolute; inset: 0; overflow: auto; display: grid; place-items: center; padding: 14px; z-index: 6; background: rgba(0,0,0,.55);
+    color: var(--stage-fg);
+  }
+  .boot[hidden] { display: none; }
+  .boot-card {
+    width: min(460px, 100%); display: grid; gap: 14px; padding: 18px;
+    background: color-mix(in srgb, var(--stage) 86%, #ffffff 14%); border: 1px solid rgba(255,255,255,.14); border-radius: 8px;
+  }
+  .boot h2 { margin: 0; font: 700 18px var(--display); }
+  .boot p { margin: 0; color: #b8c3ce; font-size: 13px; }
+  .boot label { display: grid; gap: 4px; font-size: 12px; color: #b8c3ce; }
+  .boot select, .boot input[type="file"] { color: var(--stage-fg); font: 13px var(--body); }
+  .boot select { background: #141b23; border: 1px solid rgba(255,255,255,.2); border-radius: 6px; padding: 7px 8px; }
+  .boot input[type="file"]::file-selector-button { margin-right: 8px; }
+  .meter { display: grid; gap: 4px; font: 12px var(--mono); color: #b8c3ce; }
+  .meter .bar { height: 6px; border-radius: 3px; background: rgba(255,255,255,.14); overflow: hidden; }
+  .meter .bar i { display: block; height: 100%; width: 0; background: #5fb0f0; transition: width .15s; }
+  .boot-error { color: #ffaba5; font: 12px/1.5 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+  .bar-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 12px; border-top: 1px solid var(--line); }
+  .bar-tools .spacer { flex: 1 1 8px; }
+  #stats { font: 12px var(--mono); color: var(--fg-muted); font-variant-numeric: tabular-nums; }
+
+  button, select, textarea { font: inherit; }
+  .btn {
+    appearance: none; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg);
+    border-radius: 6px; padding: 6px 12px; cursor: pointer; font-weight: 500; font-size: 13px; line-height: 1.4;
+  }
+  .btn:hover:not(:disabled) { border-color: var(--accent); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+  .btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+  .btn:focus-visible, select:focus-visible, textarea:focus-visible, .tab:focus-visible, canvas#view:focus-visible, input:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  .select {
+    border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); border-radius: 6px; padding: 6px 8px; font-size: 13px; max-width: 100%;
+  }
+
+  .scene-note { padding: 0 12px 12px; margin: 0; color: var(--fg-muted); font-size: 13px; }
+
+  /* Side panel */
+  .tabs { display: flex; border-bottom: 1px solid var(--line); }
+  .tab {
+    flex: 1 1 0; appearance: none; background: none; border: 0; border-bottom: 2px solid transparent; color: var(--fg-muted);
+    padding: 11px 8px; cursor: pointer; font-weight: 500; font-size: 13px;
+  }
+  .tab[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); }
+  .tabpanel { padding: 14px; display: grid; gap: 12px; }
+  .tabpanel[hidden] { display: none; }
+  .tabpanel h3 { margin: 0; font: 700 14px var(--display); }
+  .tabpanel p, .tabpanel li { margin: 0; color: var(--fg-muted); font-size: 13px; }
+  .tabpanel ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+  textarea#lua {
+    width: 100%; min-height: 190px; resize: vertical; background: var(--surface-2); color: var(--fg);
+    border: 1px solid var(--line); border-radius: 6px; padding: 10px; font: 12.5px/1.55 var(--mono); tab-size: 2;
+  }
+  .maplist { display: grid; gap: 6px; }
+  .maplist button { text-align: left; display: flex; justify-content: space-between; gap: 12px; }
+  .maplist small { color: var(--fg-muted); font-variant-numeric: tabular-nums; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; }
+  .kv dt { color: var(--fg-muted); }
+  .kv dd { margin: 0; overflow-wrap: anywhere; }
+  .kv dd.ok { color: var(--ok); }
+  kbd { font: 12px var(--mono); background: var(--surface-2); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; }
+  a { color: var(--accent); }
+
+  .log-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+  .log-head h3 { margin: 0; font: 700 13px var(--display); }
+  #log { height: 220px; overflow: auto; padding: 8px 12px; font: 12px/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+  #log div { color: var(--fg); }
+  #log .warn { color: var(--warn); }
+  #log .error { color: var(--danger); }
+  #log .info { color: var(--fg-muted); }
+  #log .sys { color: var(--accent); }
+
+
+  /* Game mode overlays */
+  .toast {
+    position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 4; pointer-events: none;
+    background: rgba(6,9,13,.8); color: var(--stage-fg); font: 13px var(--body); padding: 6px 12px; border-radius: 6px;
+    opacity: 0; transition: opacity .3s; max-width: calc(100% - 32px); text-align: center;
+  }
+  .toast.show { opacity: 1; }
+  .float {
+    position: absolute; z-index: 4; display: grid; gap: 10px; padding: 10px; border-radius: 8px;
+    background: rgba(12,17,23,.88); border: 1px solid rgba(255,255,255,.14); color: var(--stage-fg);
+    max-height: calc(100% - 24px); overflow: auto;
+  }
+  /* The engine draws its own menu bar across the top ~7% of the view; keep clear of it. */
+  .palette { left: max(10px, env(safe-area-inset-left, 0px)); top: 56px; width: 188px; max-height: calc(100% - 128px); }
+  .insert { right: max(10px, env(safe-area-inset-right, 0px)); top: 56px; width: 188px; }
+  @media (max-width: 560px) { .palette, .insert { width: 150px; } }
+  .float h4 { margin: 0 0 4px; font: 600 11px var(--body); letter-spacing: .06em; text-transform: uppercase; color: #9fb0bf; }
+  .float .grp { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .float .btn { padding: 4px 6px; font-size: 12px; background: #1b232c; border-color: rgba(255,255,255,.16); color: var(--stage-fg); text-align: center; }
+  .float .btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+  .debug {
+    position: absolute; top: 0; right: 0; bottom: 0; z-index: 5; width: min(440px, 100%);
+    display: flex; flex-direction: column; gap: 12px; padding: 12px; overflow: auto;
+    padding-right: max(12px, env(safe-area-inset-right, 0px));
+    background: color-mix(in srgb, var(--bg) 92%, transparent); border-left: 1px solid var(--line); backdrop-filter: blur(6px);
+  }
+  .debug .card { flex: none; }
+  .debug .bar-tools { border-top: 0; }
+  .debug .scene-note:empty { display: none; }
+  .dbg-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .dbg-head h1 { margin: 0; font: 700 16px/1.2 var(--display); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="stage" id="stage">
+  <canvas id="view" tabindex="0" width="480" height="300" aria-label="Game view. Click to focus, then use the mouse and keyboard."></canvas>
+  <div class="focus-hint">Click the view to give it keyboard focus</div>
+  <div class="toast" id="toast" role="status"></div>
+
+          <div class="boot" id="boot">
+            <div class="boot-card">
+              <h2>Start the engine</h2>
+              <p>The engine draws in software, so everything runs on your CPU. Pick a quality, optionally add your own content, then start. The view fills this window; press <kbd>`</kbd> any time for the debug tools. And thanks to <a href="https://github.com/OpenRBX-org/OpenRBX">https://github.com/OpenRBX-org/OpenRBX</a>
+ for making this possible!</p>
+
+              <div class="meter" id="meterEngine"><span>Engine <b id="engineLabel">waiting</b></span><div class="bar"><i></i></div></div>
+              <div class="meter" id="meterContent"><span>Placeholder content <b id="contentLabel">waiting</b></span><div class="bar"><i></i></div></div>
+
+              <label for="size">Render quality
+                <select id="size">
+                  <option value="250">Fast, 250 px tall</option>
+                  <option value="300" selected>Balanced, 300 px tall</option>
+                  <option value="400">Sharp, 400 px tall</option>
+                  <option value="500">Crisp, 500 px tall</option>
+                  <option value="720">HD, 720 px tall (needs a fast PC)</option>
+                </select>
+              </label>
+
+              <label for="folder">Your content folder (optional)
+                <input type="file" id="folder" webkitdirectory directory multiple>
+              </label>
+              <label for="files">or individual content files, such as comics.fnt
+                <input type="file" id="files" multiple>
+              </label>
+              <p id="pickedNote" hidden></p>
+
+              <div class="row">
+                <button class="btn primary" id="start" disabled>Start</button>
+                <span id="bootMsg" class="boot-error" hidden></span>
+              </div>
+            </div>
+          </div>
+
+  <div class="boot" id="exitCard" hidden>
+    <div class="boot-card">
+      <h2>Leave the game?</h2>
+      <p>This closes the engine. Starting again reloads the page.</p>
+      <div class="row">
+        <button class="btn primary" id="exitYes">Start again</button>
+        <button class="btn" id="exitNo">Keep playing</button>
+      </div>
+    </div>
+  </div>
+
+  <aside class="float palette" id="palette" hidden aria-label="Tools"></aside>
+  <aside class="float insert" id="insertPanel" hidden aria-label="Insert"></aside>
+
+  <aside class="debug" id="debug" hidden aria-label="Debug tools">
+    <div class="dbg-head">
+      <h1>OpenRBX debug</h1>
+      <span id="status" data-state="busy" role="status">Loading engine…</span>
+      <button class="btn" id="dbgClose" title="Close (the ` key)">Close <kbd>`</kbd></button>
+    </div>
+    <section class="card" aria-label="Controls">
+      <div class="bar-tools">
+          <button class="btn" id="runBtn" disabled>Pause</button>
+          <button class="btn" id="resetBtn" disabled>Reset scene</button>
+          <select class="select" id="scene" aria-label="Scene" disabled></select>
+          <button class="btn" id="fireBtn" disabled>Fire ball</button>
+          <button class="btn" id="uiBtn" aria-pressed="true" disabled>Engine UI</button>
+          <button class="btn" id="smoothBtn" aria-pressed="false">Smooth</button>
+          <button class="btn" id="fsBtn">Fullscreen</button>
+          <span class="spacer"></span>
+          <span id="stats">–</span>
+        </div>
+        <p class="scene-note" id="sceneNote"></p>
+    </section>
+      <section class="card" aria-label="Tools">
+        <div class="tabs" role="tablist">
+          <button class="tab" role="tab" id="tab-lua" aria-controls="panel-lua" aria-selected="true">Lua</button>
+          <button class="tab" role="tab" id="tab-place" aria-controls="panel-place" aria-selected="false">Place &amp; content</button>
+          <button class="tab" role="tab" id="tab-about" aria-controls="panel-about" aria-selected="false">About</button>
+        </div>
+
+        <div class="tabpanel" role="tabpanel" id="panel-lua" aria-labelledby="tab-lua">
+          <h3>Script console</h3>
+          <textarea id="lua" spellcheck="false" aria-label="Lua source">-- Runs inside the engine (Lua 5.1, 2007 API).
+local ws = game:GetService("Workspace")
+
+for i = 1, 5 do
+  local p = Instance.new("Part")
+  p.Size = Vector3.new(4, 1.2, 2)
+  p.Position = Vector3.new(0, 20 + i * 2, 0)
+  p.BrickColor = BrickColor.Random()
+  p.Parent = ws
+end
+print("dropped 5 bricks")</textarea>
+          <div class="row">
+            <button class="btn primary" id="luaRun" disabled>Run</button>
+            <span class="kbd-hint" style="color:var(--fg-muted);font-size:12px"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></span>
+          </div>
+          <p>Output from <code>print()</code>, warnings and script errors appears in the engine log below.</p>
+        </div>
+
+        <div class="tabpanel" role="tabpanel" id="panel-place" aria-labelledby="tab-place" hidden>
+          <h3>Open a place</h3>
+          <p>Load a <code>.rbxl</code>, <code>.rbxm</code> or <code>.xml</code> file. It replaces what is in the world. Large places take a few seconds and run slowly in software rendering.</p>
+          <div id="mapList" class="maplist" hidden></div>
+          <input type="file" id="placeFile" accept=".rbxl,.rbxm,.xml" disabled aria-label="Place file">
+
+          <h3>Content in use</h3>
+          <dl class="kv" id="contentInfo">
+            <dt>Source</dt><dd id="ciSource">–</dd>
+            <dt>Files</dt><dd id="ciFiles">–</dd>
+            <dt>Comic font</dt><dd id="ciFont">–</dd>
+            <dt>Character</dt><dd id="ciChar">–</dd>
+          </dl>
+          <div class="row">
+            <button class="btn" id="soloBtn" disabled>Play Solo</button>
+            <button class="btn" id="restartBtn">Restart with other content</button>
+          </div>
+          <p>Play Solo spawns a character, which needs <code>fonts/character.rbxm</code> from a Roblox content folder. Content is read in your browser and never uploaded.</p>
+        </div>
+
+        <div class="tabpanel" role="tabpanel" id="panel-about" aria-labelledby="tab-about" hidden>
+          <h3>Controls</h3>
+          <ul>
+            <li><kbd>Right mouse</kbd> drag to turn the camera, wheel to zoom.</li>
+            <li>Left click uses tools and the engine menu.</li>
+            <li><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> and the arrow keys move a character once Play Solo is running.</li>
+            <li>On a touch screen, drag to turn the camera and tap to click.</li>
+          </ul>
+          <h3>What this is</h3>
+          <p>The OpenRBX engine (a 2007 Roblox reconstruction) built for the browser: physics, Lua and the renderer are the real code, running offline in a single thread. There is no networking, sound or multiplayer.</p>
+          <h3>License and content</h3>
+          <p>OpenRBX is licensed under the GNU GPL v3, not released into the public domain. Its source is at <a href="https://github.com/OpenRBX-org/OpenRBX" target="_blank" rel="noopener">github.com/OpenRBX-org/OpenRBX</a>. The original game art is not part of it, so this page uses flat placeholder textures plus the BSD-licensed font and sky from G3D. Bring your own content folder for the original look.</p>
+        </div>
+      </section>
+      <section class="card" aria-label="Engine log">
+        <div class="log-head"><h3>Engine log</h3><button class="btn" id="logClear">Clear</button></div>
+        <div id="log" role="log" aria-live="off" tabindex="0"></div>
+      </section>
+  </aside>
+</div>
+
+<script src="scenes.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var $ = function (id) { return document.getElementById(id); };
+  var ENGINE_WASM_BYTES = 5580860;       // used for the progress bar when the server sends no length
+  var ALLOWED_EXT = /\.(png|jpe?g|bmp|tga|dds|gif|fnt|xml|rbxm|rbxl|mesh|lua|txt)$/i;
+  var MAX_FILE_BYTES = 12 * 1024 * 1024;
+  var MAX_TOTAL_BYTES = 256 * 1024 * 1024;
+  var LOG_LINES = 600;
+
+  var S = window.OPENRBX_SCENES;
+  var M = null;                          // the Emscripten module
+  var api = {};
+  var W = 480, H = 300;
+  var ctx = null;
+  var running = false;
+  var currentScene = S.defaultScene;
+  var hasUserContent = false;
+  var wasmBytes = null;
+
+  /* ---------- status + log ---------- */
+  function setStatus(text, state) { var el = $("status"); el.textContent = text; el.dataset.state = state || "busy"; }
+
+  var logEl = $("log");
+  function log(text, cls) {
+    var line = document.createElement("div");
+    if (cls) line.className = cls;
+    line.textContent = text;
+    var stick = logEl.scrollTop + logEl.clientHeight >= logEl.scrollHeight - 24;
+    logEl.appendChild(line);
+    while (logEl.childNodes.length > LOG_LINES) logEl.removeChild(logEl.firstChild);
+    if (stick) logEl.scrollTop = logEl.scrollHeight;
+  }
+  function engineLine(s) {
+    var m = /^\[(info|warn|error)\] (.*)$/.exec(s);
+    if (m) log(m[2], m[1]);
+    else log(s.replace(/^\t+/, ""));
+  }
+  $("logClear").onclick = function () { logEl.textContent = ""; };
+
+  /* ---------- tabs ---------- */
+  var tabs = ["lua", "place", "about"];
+  function selectTab(t) {
+    tabs.forEach(function (o) {
+      $("tab-" + o).setAttribute("aria-selected", String(o === t));
+      $("panel-" + o).hidden = o !== t;
+    });
+  }
+  tabs.forEach(function (t) { $("tab-" + t).onclick = function () { selectTab(t); }; });
+
+  /* ---------- downloads with progress ---------- */
+  function setMeter(id, labelId, frac, text) {
+    $(id).querySelector("i").style.width = Math.round(Math.max(0, Math.min(1, frac)) * 100) + "%";
+    $(labelId).textContent = text;
+  }
+
+  function fetchWithProgress(url, onProgress, fallbackTotal) {
+    return fetch(url).then(function (res) {
+      if (!res.ok) throw new Error(url + ": HTTP " + res.status);
+      var total = Number(res.headers.get("Content-Length")) || fallbackTotal || 0;
+      if (!res.body || !res.body.getReader) return res.arrayBuffer();
+      var reader = res.body.getReader(), chunks = [], got = 0;
+      function pump() {
+        return reader.read().then(function (r) {
+          if (r.done) return;
+          chunks.push(r.value); got += r.value.length;
+          onProgress(total ? Math.min(1, got / total) : 0, got);
+          return pump();
+        });
+      }
+      return pump().then(function () {
+        var out = new Uint8Array(got), off = 0;
+        chunks.forEach(function (c) { out.set(c, off); off += c.length; });
+        return out.buffer;
+      });
+    });
+  }
+
+  function loadScript(src) {
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement("script");
+      s.src = src; s.onload = resolve; s.onerror = function () { reject(new Error("Could not load " + src)); };
+      document.head.appendChild(s);
+    });
+  }
+
+  var manifest = null, placeholder = [], bundledLabel = "";   // placeholder: {path, bytes}
+  function prefetch() {
+    var engine = Promise.all([
+      fetchWithProgress("openrbx.wasm", function (f, n) {
+        setMeter("meterEngine", "engineLabel", f, (n / 1048576).toFixed(1) + " MB");
+      }, ENGINE_WASM_BYTES),
+      loadScript("openrbx.js")
+    ]).then(function (r) {
+      wasmBytes = r[0];
+      setMeter("meterEngine", "engineLabel", 1, "ready (" + (wasmBytes.byteLength / 1048576).toFixed(1) + " MB)");
+    });
+
+    var content = Promise.all([
+      fetch("content/manifest.json").then(function (r) {
+        if (!r.ok) throw new Error("content/manifest.json: HTTP " + r.status);
+        return r.json();
+      }),
+      // Files a static host will not serve by extension (the engine's .fnt fonts) ride along as base64.
+      fetch("content/inline.json").then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; }),
+      // Optional: a packager that bundled the owner's own content says so here.
+      fetch("content/source.txt").then(function (r) { return r.ok ? r.text() : ""; }).catch(function () { return ""; })
+    ]).then(function (res) {
+      bundledLabel = (res[2] || "").trim();
+      var list = res[0], inline = res[1], inlineNames = Object.keys(inline);
+      manifest = list;
+      inlineNames.forEach(function (name) {
+        var bin = atob(inline[name]), bytes = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        placeholder.push({ path: name, bytes: bytes });
+      });
+      var total = list.length + inlineNames.length, done = inlineNames.length;
+      return Promise.all(list.map(function (path) {
+        return fetch("content/" + path).then(function (r) {
+          if (!r.ok) throw new Error("content/" + path + ": HTTP " + r.status);
+          return r.arrayBuffer();
+        }).then(function (buf) {
+          placeholder.push({ path: path, bytes: new Uint8Array(buf) });
+          done++;
+          setMeter("meterContent", "contentLabel", done / total, done + " / " + total + " files");
+        });
+      }));
+    }).then(function () {
+      setMeter("meterContent", "contentLabel", 1, "ready (" + placeholder.length + " files)");
+    });
+
+    return Promise.all([engine, content]);
+  }
+
+  /* ---------- user content ---------- */
+  var KNOWN = {};   // lowercase file name -> relative path inside the content folder, for loose files
+  function indexKnown() {
+    placeholder.forEach(function (f) { KNOWN[f.path.split("/").pop().toLowerCase()] = f.path; });
+    KNOWN["character.rbxm"] = "fonts/character.rbxm";
+    KNOWN["comics.fnt"] = "Fonts/comics.fnt";
+  }
+
+  function relativeContentPath(file, fromFolder) {
+    var rel = fromFolder ? (file.webkitRelativePath || file.name) : file.name;
+    var parts = rel.split("/");
+    if (fromFolder) {
+      var at = -1;
+      for (var i = 0; i < parts.length - 1; i++) if (parts[i].toLowerCase() === "content") at = i;
+      parts = at >= 0 ? parts.slice(at + 1) : parts.slice(1);
+    } else {
+      var known = KNOWN[file.name.toLowerCase()];
+      if (known) parts = known.split("/");
+    }
+    return parts.filter(Boolean);
+  }
+
+  function pickedFromInputs() {
+    var out = [], total = 0, skipped = 0;
+    function take(fileList, fromFolder) {
+      Array.prototype.forEach.call(fileList || [], function (f) {
+        var parts = relativeContentPath(f, fromFolder);
+        if (!parts.length || !ALLOWED_EXT.test(f.name) || f.size > MAX_FILE_BYTES || total + f.size > MAX_TOTAL_BYTES) { skipped++; return; }
+        total += f.size;
+        out.push({ parts: parts, file: f });
+      });
+    }
+    take($("folder").files, true);
+    take($("files").files, false);
+    return { files: out, bytes: total, skipped: skipped };
+  }
+
+  function updatePickedNote() {
+    var p = pickedFromInputs(), note = $("pickedNote");
+    if (!p.files.length && !p.skipped) { note.hidden = true; return; }
+    note.hidden = false;
+    note.textContent = p.files.length + " file" + (p.files.length === 1 ? "" : "s") + " (" + (p.bytes / 1048576).toFixed(1) + " MB) will replace the placeholders" +
+      (p.skipped ? "; " + p.skipped + " skipped (sounds, large or unsupported files)." : ".");
+  }
+  $("folder").onchange = updatePickedNote;
+  $("files").onchange = updatePickedNote;
+
+  // Writes a file under /content, matching existing folder and file names without regard to case so
+  // a user's "Textures/Surfaces.png" replaces the placeholder "textures/surfaces.png".
+  function putFile(root, parts, bytes) {
+    var FS = M.FS, dir = root;
+    for (var i = 0; i < parts.length - 1; i++) {
+      var seg = parts[i], hit = null;
+      FS.readdir(dir).forEach(function (n) { if (n !== "." && n !== ".." && n.toLowerCase() === seg.toLowerCase()) hit = n; });
+      dir = dir + "/" + (hit || seg);
+      if (!hit) FS.mkdir(dir);
+    }
+    var name = parts[parts.length - 1];
+    FS.readdir(dir).forEach(function (n) { if (n !== "." && n !== ".." && n.toLowerCase() === name.toLowerCase() && n !== name) FS.unlink(dir + "/" + n); });
+    FS.writeFile(dir + "/" + name, bytes);
+  }
+
+  function hasCI(root, parts) {
+    var FS = M.FS, dir = root;
+    for (var i = 0; i < parts.length; i++) {
+      var seg = parts[i].toLowerCase(), hit = null, list;
+      try { list = FS.readdir(dir); } catch (e) { return false; }
+      list.forEach(function (n) { if (n.toLowerCase() === seg) hit = n; });
+      if (!hit) return false;
+      dir = dir + "/" + hit;
+    }
+    return true;
+  }
+
+  function mountContent() {
+    M.FS.mkdirTree("/content");
+    placeholder.forEach(function (f) { putFile("/content", f.path.split("/"), f.bytes); });
+    var picked = pickedFromInputs();
+    return picked.files.reduce(function (chain, item) {
+      return chain.then(function () {
+        return item.file.arrayBuffer().then(function (buf) { putFile("/content", item.parts, new Uint8Array(buf)); });
+      });
+    }, Promise.resolve()).then(function () {
+      hasUserContent = picked.files.length > 0;
+      return picked;
+    });
+  }
+
+  /* ---------- engine start ---------- */
+  function start() {
+    $("start").disabled = true;
+    $("bootMsg").hidden = true;
+    setStatus("Starting…", "busy");
+    var tall = Number($("size").value) || 300;
+    var aspect = Math.max(1, Math.min(2.4, window.innerWidth / Math.max(1, window.innerHeight)));
+    H = tall; W = Math.round(tall * aspect / 2) * 2;
+
+    var logSys = function (t) { log(t, "sys"); };
+    return window.createOpenRBX({
+      wasmBinary: wasmBytes,
+      onVerb: onVerb,
+      print: engineLine,
+      printErr: function (s) { if (!/^(cache:|em\+\+)/.test(s)) log(s, "warn"); }
+    }).then(function (mod) {
+      M = mod;
+      api.init = M.cwrap("rbx_init", "number", ["number", "number", "string"]);
+      api.frame = M.cwrap("rbx_frame", "number", []);
+      api.lua = M.cwrap("rbx_run_lua", "number", ["string", "string"]);
+      api.place = M.cwrap("rbx_load_place", "number", ["string"]);
+      api.setRunning = M.cwrap("rbx_set_running", "number", ["number"]);
+      api.isRunning = M.cwrap("rbx_is_running", "number", []);
+      api.solo = M.cwrap("rbx_play_solo", "number", []);
+      api.mouse = M.cwrap("rbx_mouse", null, ["number", "number", "number"]);
+      api.mouseDelta = M.cwrap("rbx_mouse_delta", null, ["number", "number"]);
+      api.key = M.cwrap("rbx_key", null, ["number", "number", "number"]);
+      api.showGui = M.cwrap("rbx_show_gui", null, ["number"]);
+      api.verbState = M.cwrap("rbx_verb_state", "number", ["string"]);
+      api.doVerb = M.cwrap("rbx_do_verb", "number", ["string"]);
+      logSys("Engine loaded. Mounting content…");
+      logSys("Rendering at " + W + "x" + H + ".");
+      return mountContent();
+    }).then(function (picked) {
+      logSys("Content ready (" + placeholder.length + " files" + (hasUserContent ? ", " + picked.files.length + " of yours" : "") + ").");
+      var rc = api.init(W, H, "/content/");
+      if (rc !== 0) throw new Error("The engine failed to initialise. The engine log shows the reason; missing content files are the usual cause.");
+
+      var canvas = $("view");
+      canvas.width = W; canvas.height = H;
+      ctx = canvas.getContext("2d", { alpha: false });
+      canvas.className = $("smoothBtn").getAttribute("aria-pressed") === "true" ? "smooth" : "crisp";
+
+      loadScene(currentScene, true);
+      api.setRunning(1);
+      running = true;
+
+      $("boot").hidden = true;
+      $("stage").classList.add("live");
+      enableControls();
+      updateContentInfo();
+      setStatus("Running", "live");
+      canvas.focus();
+      showToast("Press ` for the debug tools", 6000);
+      requestAnimationFrame(tick);
+    }).catch(function (err) {
+      console.error(err);
+      var el = $("bootMsg");
+      el.hidden = false; el.textContent = String(err && err.message || err);
+      setStatus("Failed to start", "error");
+      $("start").disabled = false;
+      log(String(err && err.message || err), "error");
+    });
+  }
+  $("start").onclick = start;
+
+  /* ---------- scenes ---------- */
+  var sceneSel = $("scene");
+  Object.keys(S.scenes).forEach(function (k) {
+    var o = document.createElement("option"); o.value = k; o.textContent = S.scenes[k].title; sceneSel.appendChild(o);
+  });
+  sceneSel.value = currentScene;
+  $("sceneNote").textContent = S.scenes[currentScene].blurb;
+
+  function loadScene(key, first) {
+    currentScene = key;
+    sceneSel.value = key;
+    $("sceneNote").textContent = S.scenes[key].blurb;
+    var rc = api.lua(S.scenes[key].lua, "scene:" + key);
+    if (rc !== 0 && !first) log("Scene script reported an error.", "error");
+  }
+  sceneSel.onchange = function () { loadScene(sceneSel.value); };
+  $("resetBtn").onclick = function () { loadScene(currentScene); };
+  $("fireBtn").onclick = function () { api.lua(S.fireBall, "fire"); $("view").focus(); };
+
+  /* ---------- controls ---------- */
+  function setRunLabel() {
+    $("runBtn").textContent = running ? "Pause" : "Run";
+    setStatus(running ? "Running" : "Paused", running ? "live" : "busy");
+  }
+  $("runBtn").onclick = function () { running = !running; api.setRunning(running ? 1 : 0); setRunLabel(); };
+
+  var guiOn = true;
+  $("uiBtn").onclick = function () { guiOn = !guiOn; api.showGui(guiOn ? 1 : 0); this.setAttribute("aria-pressed", String(guiOn)); };
+
+  $("smoothBtn").onclick = function () {
+    var on = this.getAttribute("aria-pressed") !== "true";
+    this.setAttribute("aria-pressed", String(on));
+    $("view").className = on ? "smooth" : "crisp";
+  };
+  $("view").className = "crisp";
+
+  function toggleFullscreen() {
+    var st = $("stage");
+    try {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else if (st.requestFullscreen) st.requestFullscreen().catch(function () { log("Fullscreen was refused by the browser.", "warn"); });
+      else log("This browser has no fullscreen support for the view.", "warn");
+    } catch (e) { log("Fullscreen was refused by the browser.", "warn"); }
+  }
+  $("fsBtn").onclick = toggleFullscreen;
+
+  function runLua() {
+    var src = $("lua").value;
+    log("> running script (" + src.split("\n").length + " lines)", "sys");
+    api.lua(src, "console");
+  }
+  $("luaRun").onclick = runLua;
+  $("lua").addEventListener("keydown", function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); runLua(); }
+    else if (e.key === "Tab" && !e.shiftKey) {
+      e.preventDefault();
+      var t = e.target, s = t.selectionStart;
+      t.value = t.value.slice(0, s) + "  " + t.value.slice(t.selectionEnd);
+      t.selectionStart = t.selectionEnd = s + 2;
+    }
+  });
+
+  function openPlace(name, bytes) {
+    M.FS.mkdirTree("/place");
+    var path = "/place/" + name.replace(/[^\w.\-]/g, "_");
+    M.FS.writeFile(path, bytes);
+    setStatus("Loading " + name + "…", "busy");
+    log("Loading " + name + " (" + (bytes.length / 1048576).toFixed(1) + " MB)…", "sys");
+    // Let the status text paint before the engine blocks the page while it parses the file.
+    setTimeout(function () {
+      var t0 = performance.now();
+      api.lua(S.clearWorld, "clear");
+      var rc = api.place(path);
+      var secs = ((performance.now() - t0) / 1000).toFixed(1);
+      log(rc === 0 ? "Loaded " + name + " in " + secs + " s." : "Could not load " + name + ". See the messages above.", rc === 0 ? "sys" : "error");
+      sceneSel.selectedIndex = -1;
+      $("sceneNote").textContent = rc === 0 ? name + " is loaded. Drag with the right mouse button to look around." : "";
+      setRunLabel();
+    }, 40);
+  }
+
+  $("placeFile").onchange = function () {
+    var f = this.files[0]; if (!f) return;
+    var self = this;
+    f.arrayBuffer().then(function (buf) { openPlace(f.name, new Uint8Array(buf)); self.value = ""; });
+  };
+
+  // Optional maps shipped next to the page: maps/manifest.json = [{"name": "...", "file": "x.rbxl"}]
+  function loadMapList() {
+    fetch("maps/manifest.json").then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }).then(function (list) {
+      if (!list.length) return;
+      var box = $("mapList"); box.hidden = false;
+      list.forEach(function (m) {
+        var b = document.createElement("button");
+        b.className = "btn"; b.type = "button";
+        var label = document.createElement("span"); label.textContent = m.name;
+        var size = document.createElement("small"); size.textContent = m.size || "";
+        b.appendChild(label); b.appendChild(size);
+        b.onclick = function () {
+          b.disabled = true;
+          fetch("maps/" + m.file).then(function (r) {
+            if (!r.ok) throw new Error("maps/" + m.file + ": HTTP " + r.status);
+            return r.arrayBuffer();
+          }).then(function (buf) { openPlace(m.file, new Uint8Array(buf)); })
+            .catch(function (e) { log(String(e.message || e), "error"); })
+            .then(function () { b.disabled = !M; });
+        };
+        b.disabled = true; b.dataset.map = "1";
+        box.appendChild(b);
+      });
+    });
+  }
+
+  $("soloBtn").onclick = function () {
+    var rc = api.solo();
+    log(rc === 0 ? "Character spawned." : "Play Solo failed. See the messages above.", rc === 0 ? "sys" : "error");
+    $("view").focus();
+  };
+  $("restartBtn").onclick = function () { location.reload(); };
+
+  function enableControls() {
+    ["runBtn", "resetBtn", "scene", "fireBtn", "uiBtn", "luaRun", "placeFile"].forEach(function (id) { $(id).disabled = false; });
+    Array.prototype.forEach.call(document.querySelectorAll("#mapList button"), function (b) { b.disabled = false; });
+    $("soloBtn").disabled = !hasCI("/content", ["fonts", "character.rbxm"]);
+  }
+
+  function updateContentInfo() {
+    $("ciSource").textContent = bundledLabel || (hasUserContent ? "Placeholders plus your files" : "Built-in placeholders only");
+    var n = 0;
+    (function walk(d) { M.FS.readdir(d).forEach(function (e) {
+      if (e === "." || e === "..") return;
+      var p = d + "/" + e;
+      if (M.FS.isDir(M.FS.stat(p).mode)) walk(p); else n++;
+    }); })("/content");
+    $("ciFiles").textContent = n + " files in the engine's content folder";
+    var font = $("ciFont");
+    var fontFromUser = (hasUserContent && pickedFromInputsHasFont()) || !!bundledLabel;
+    font.textContent = fontFromUser ? "Yours (comics.fnt)" : "Stand-in bitmap font";
+    font.className = fontFromUser ? "ok" : "";
+    var ch = hasCI("/content", ["fonts", "character.rbxm"]);
+    $("ciChar").textContent = ch ? "Available, Play Solo enabled" : "Not provided";
+    $("ciChar").className = ch ? "ok" : "";
+  }
+  function pickedFromInputsHasFont() {
+    return pickedFromInputs().files.some(function (f) { return f.parts[f.parts.length - 1].toLowerCase() === "comics.fnt"; });
+  }
+
+  /* ---------- input ---------- */
+  var canvas = $("view");
+  function toEngine(e) {
+    var r = canvas.getBoundingClientRect();
+    // The canvas letterboxes its bitmap (object-fit: contain), so map through the drawn rectangle.
+    var scale = Math.min(r.width / W, r.height / H);
+    var dw = W * scale, dh = H * scale;
+    var x = (e.clientX - r.left - (r.width - dw) / 2) / scale;
+    var y = (e.clientY - r.top - (r.height - dh) / 2) / scale;
+    return [Math.max(0, Math.min(W - 1, Math.round(x))), Math.max(0, Math.min(H - 1, Math.round(y)))];
+  }
+
+  var touch = null;
+  var drag = null;     // while the right button (or a finger) is down: last pointer position for raw deltas
+  canvas.addEventListener("pointermove", function (e) {
+    if (!M || e.pointerType === "touch" && !touch) return;
+    var p = toEngine(e);
+    api.mouse(5, p[0], p[1]);
+    if (drag) {
+      // The engine turns the camera from raw movement, not from absolute positions.
+      var dx = Math.round(e.clientX - drag.x), dy = Math.round(e.clientY - drag.y);
+      if (dx || dy) { api.mouseDelta(dx, dy); drag.x = e.clientX; drag.y = e.clientY; }
+    }
+    if (touch) touch.moved = touch.moved || Math.hypot(e.clientX - touch.x, e.clientY - touch.y) > 8;
+  });
+  canvas.addEventListener("pointerdown", function (e) {
+    if (!M) return;
+    canvas.focus();
+    try { canvas.setPointerCapture(e.pointerId); } catch (x) { /* capture is optional */ }
+    var p = toEngine(e);
+    api.mouse(5, p[0], p[1]);
+    if (e.pointerType === "touch") {
+      touch = { x: e.clientX, y: e.clientY, t: performance.now(), moved: false };
+      drag = { x: e.clientX, y: e.clientY };
+      api.mouse(1, p[0], p[1]);                         // dragging turns the camera
+    } else if (e.button === 0) api.mouse(3, p[0], p[1]);
+    else if (e.button === 2) { drag = { x: e.clientX, y: e.clientY }; api.mouse(1, p[0], p[1]); }
+    e.preventDefault();
+  });
+  canvas.addEventListener("pointerup", function (e) {
+    if (!M) return;
+    var p = toEngine(e);
+    if (e.pointerType === "touch" || e.button === 2) drag = null;
+    if (e.pointerType === "touch" && touch) {
+      api.mouse(2, p[0], p[1]);
+      if (!touch.moved && performance.now() - touch.t < 350) { api.mouse(3, p[0], p[1]); api.mouse(4, p[0], p[1]); }
+      touch = null;
+    } else if (e.button === 0) api.mouse(4, p[0], p[1]);
+    else if (e.button === 2) api.mouse(2, p[0], p[1]);
+  });
+  canvas.addEventListener("pointercancel", function () { touch = null; drag = null; });
+  canvas.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+
+  var wheelAcc = 0;
+  canvas.addEventListener("wheel", function (e) {
+    if (!M) return;
+    e.preventDefault();
+    wheelAcc += e.deltaMode === 1 ? e.deltaY * 40 : e.deltaY;
+    var p = toEngine(e);
+    while (Math.abs(wheelAcc) >= 80) {
+      api.mouse(wheelAcc < 0 ? 8 : 9, p[0], p[1]);
+      wheelAcc += wheelAcc < 0 ? 80 : -80;
+    }
+  }, { passive: false });
+
+  // Browser key names -> SDL 1.2 key codes (what the engine's input layer expects).
+  var NAMED = {
+    Enter: 13, Escape: 27, Tab: 9, Backspace: 8, " ": 32, Delete: 127,
+    ArrowUp: 273, ArrowDown: 274, ArrowRight: 275, ArrowLeft: 276,
+    Insert: 277, Home: 278, End: 279, PageUp: 280, PageDown: 281
+  };
+  var CODES = { ShiftLeft: 304, ShiftRight: 303, ControlLeft: 306, ControlRight: 305, AltLeft: 308, AltRight: 307 };
+  function sdlKey(e) {
+    if (CODES[e.code]) return CODES[e.code];
+    if (NAMED[e.key] !== undefined) return NAMED[e.key];
+    if (e.key.length === 1) {
+      var c = e.key.toLowerCase().charCodeAt(0);
+      if (c < 128) return c;
+    }
+    return 0;
+  }
+  function sdlMods(e) { return (e.shiftKey ? 1 : 0) | (e.ctrlKey ? 0x40 : 0) | (e.altKey ? 0x100 : 0); }
+
+  canvas.addEventListener("keydown", function (e) {
+    if (!M || e.code === "Backquote") return;
+    var k = sdlKey(e);
+    if (!k) return;
+    api.key(k, 1, sdlMods(e));
+    e.preventDefault();
+  });
+  canvas.addEventListener("keyup", function (e) {
+    if (!M || e.code === "Backquote") return;
+    var k = sdlKey(e);
+    if (!k) return;
+    api.key(k, 0, sdlMods(e));
+    e.preventDefault();
+  });
+  canvas.addEventListener("blur", function () {
+    // Release anything held so a character does not keep walking after focus moves away.
+    if (!M) return;
+    [87, 65, 83, 68, 273, 274, 275, 276, 32, 304, 306].forEach(function (k) { api.key(k, 0, 0); });
+    $("stage").classList.remove("focused");
+  });
+  canvas.addEventListener("focus", function () { $("stage").classList.add("focused"); });
+
+  /* ---------- game mode: debug overlay, tool palette, insert panel, shell verbs ---------- */
+  var toastTimer = 0;
+  function showToast(text, ms) {
+    var t = $("toast");
+    t.textContent = text; t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove("show"); }, ms || 3000);
+  }
+
+  var debugEl = $("debug");
+  function setDebug(on) {
+    debugEl.hidden = !on;
+    if (!on && M) $("view").focus();
+  }
+  $("dbgClose").onclick = function () { setDebug(false); };
+  // Capture phase: the engine must never see the key that opens the debug tools.
+  window.addEventListener("keydown", function (e) {
+    if (e.code !== "Backquote" && e.key !== "`") return;
+    e.preventDefault(); e.stopPropagation();
+    if (!e.repeat) setDebug(debugEl.hidden);
+  }, true);
+  window.addEventListener("keyup", function (e) {
+    if (e.code === "Backquote" || e.key === "`") { e.preventDefault(); e.stopPropagation(); }
+  }, true);
+
+  // Tools. Verb names are the engine's own (Client/App/v8datamodel/Commands.h, tool/*).
+  var PALETTE = [
+    ["Mouse tool", [["Select", "ArrowTool"], ["Move", "AxisMoveTool"], ["Resize", "ResizeTool"], ["Fill", "FillTool"], ["Dropper", "DropperTool"], ["Anchor", "AnchorTool"], ["Lock", "LockTool"]]],
+    ["Surfaces", [["Smooth", "FlatTool"], ["Studs", "StudsTool"], ["Inlets", "InletTool"], ["Glue", "GlueTool"], ["Weld", "WeldTool"], ["Hinge", "HingeTool"], ["Motor R", "RightMotorTool"], ["Motor L", "LeftMotorTool"], ["Oscillate", "OscillateMotorTool"]]],
+    ["Models", [["Set front", "ModelSetFrontTool"], ["Set primary", "ModelSetPrimaryPartTool"]]],
+    ["Play tools", [["Grab", "GrabTool"], ["Clone", "CloneTool"], ["Hammer", "HammerTool"], ["Slingshot", "SlingshotTool"], ["Rocket", "RocketTool"], ["Laser", "LaserTool"]]],
+    ["Edit", [["Group", "Group", 1], ["Ungroup", "UnGroup", 1], ["Duplicate", "Duplicate", 1], ["Delete", "Delete", 1], ["Select all", "SelectAll", 1], ["Undo", "Undo", 1], ["Redo", "Redo", 1], ["Weld sel.", "WeldSelection", 1], ["Snap sel.", "SnapSelection", 1]]],
+    ["World", [["Run", "Run", 1], ["Stop", "Stop", 1], ["Reset", "Reset", 1]]]
+  ];
+  var paletteButtons = [];
+  (function buildPalette() {
+    var pal = $("palette");
+    PALETTE.forEach(function (g) {
+      var wrap = document.createElement("div");
+      var h = document.createElement("h4"); h.textContent = g[0]; wrap.appendChild(h);
+      var grid = document.createElement("div"); grid.className = "grp";
+      g[1].forEach(function (it) {
+        var b = document.createElement("button");
+        b.className = "btn"; b.type = "button"; b.textContent = it[0]; b.disabled = true;
+        b.setAttribute("aria-pressed", "false");
+        b.onclick = function () { if (M) api.doVerb(it[1]); refreshPalette(); $("view").focus(); };
+        grid.appendChild(b);
+        paletteButtons.push({ el: b, verb: it[1], action: !!it[2] });
+      });
+      wrap.appendChild(grid); pal.appendChild(wrap);
+    });
+  })();
+  function refreshPalette() {
+    if (!M || $("palette").hidden) return;
+    paletteButtons.forEach(function (b) {
+      var st = api.verbState(b.verb);
+      b.el.hidden = !st;
+      b.el.disabled = !(st & 2);
+      b.el.setAttribute("aria-pressed", String(!b.action && !!(st & 4)));
+    });
+  }
+  setInterval(refreshPalette, 300);
+
+  // Insert: the original client opens its web Toolbox here, which needs a network. These drop a new
+  // object in front of the camera instead.
+  var INSERT = [
+    ["Brick", "Part", "4, 1.2, 2"], ["Plate", "Part", "4, 0.4, 2"],
+    ["Ball", "Part", "4, 4, 4", "Ball"], ["Cylinder", "Part", "4, 4, 4", "Cylinder"],
+    ["Spawn", "SpawnLocation"], ["Seat", "Seat"], ["Model", "Model"]
+  ];
+  (function buildInsert() {
+    var panel = $("insertPanel");
+    var h = document.createElement("h4"); h.textContent = "Insert"; panel.appendChild(h);
+    var grid = document.createElement("div"); grid.className = "grp";
+    INSERT.forEach(function (it) {
+      var b = document.createElement("button");
+      b.className = "btn"; b.type = "button"; b.textContent = it[0];
+      b.onclick = function () {
+        if (!M) return;
+        var lua = 'local f = workspace.CurrentCamera.Focus\n' +
+          'local p = Instance.new("' + it[1] + '")\n' + 'p.Name = "' + it[0] + '"\n' +
+          (it[1] === "Part" ? 'p.Size = Vector3.new(' + it[2] + ')\n' + (it[3] ? 'p.Shape = "' + it[3] + '"\n' : '') + 'p.BrickColor = BrickColor.new("Bright red")\n' : '') +
+          (it[1] === "Model" ? '' : 'p.Position = Vector3.new(f.p.x, f.p.y + 3, f.p.z)\n') +
+          'p.Parent = workspace';
+        api.lua(lua, "insert");
+        $("view").focus();
+      };
+      grid.appendChild(b);
+    });
+    panel.appendChild(grid);
+  })();
+
+  // The verbs the Windows client's MFC shell provides; the engine's own menu calls them by name.
+  function onVerb(name) {
+    switch (name) {
+      case "Exit": $("exitCard").hidden = false; break;
+      case "ToggleFullScreen": toggleFullscreen(); break;
+      case "Help": setDebug(true); selectTab("about"); break;
+      case "TogglePlayMode": $("palette").hidden = !$("palette").hidden; refreshPalette(); break;
+      case "ToggleToolbox": $("insertPanel").hidden = !$("insertPanel").hidden; break;
+      case "LockPlayMode": $("palette").hidden = true; break;
+    }
+  }
+  $("exitYes").onclick = function () { location.reload(); };
+  $("exitNo").onclick = function () { $("exitCard").hidden = true; if (M) $("view").focus(); };
+
+  /* ---------- frame loop ---------- */
+  var frames = 0, msSum = 0, lastStat = performance.now(), failures = 0;
+  function tick() {
+    requestAnimationFrame(tick);
+    var t0 = performance.now();
+    var ptr = api.frame();
+    if (!ptr) {
+      if (++failures === 30) { log("The renderer returned no frame 30 times in a row. See the messages above.", "error"); setStatus("Renderer error", "error"); }
+      return;
+    }
+    failures = 0;
+    var pixels = new Uint8ClampedArray(M.HEAPU8.buffer, ptr, W * H * 4);
+    ctx.putImageData(new ImageData(pixels, W, H), 0, 0);
+    var t1 = performance.now();
+    frames++; msSum += t1 - t0;
+    if (t1 - lastStat >= 500) {
+      var fps = frames * 1000 / (t1 - lastStat);
+      $("stats").textContent = fps.toFixed(0) + " fps · " + (msSum / frames).toFixed(0) + " ms/frame";
+      frames = 0; msSum = 0; lastStat = t1;
+    }
+  }
+
+  /* ---------- boot ---------- */
+  loadMapList();
+  prefetch().then(function () {
+    indexKnown();
+    $("start").disabled = false;
+    setStatus("Ready to start", "busy");
+    $("start").focus();
+  }).catch(function (err) {
+    console.error(err);
+    var el = $("bootMsg");
+    el.hidden = false;
+    el.textContent = "Could not load the engine files.\n" + String(err && err.message || err) +
+      "\n\nThis page must be served over http, not opened from disk. Run serve.py next to it.";
+    setStatus("Failed to load", "error");
+  });
+})();
+</script>
