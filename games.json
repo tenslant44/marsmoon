@@ -115,6 +115,22 @@
       "source": "https://github.com/gabrielecirulli/2048",
       "sourceLabel": "ORIGINAL SOURCE",
       "status": "LOCAL BUILD"
+    },
+    {
+      "id": "roblox",
+      "title": "ROBLOX",
+      "description": "A WASM port of the 2007 ROBLOX client. Credits to Wammed on WebSim.",
+      "category": "other",
+      "tags": [
+        "3D",
+        "Classic",
+        "WebSim",
+        "Ports"
+      ],
+      "symbol": "R",
+      "path": "games/ROBLOX/index.html",
+      "status": "AVAILABLE",
+      "thumbnail": "games/ROBLOX/8c1y6l2d7knc1.jfif"
     }
   ]
 }
