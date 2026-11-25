@@ -426,21 +426,6 @@
       "status": "LOCAL BUILD"
     },
     {
-      "id": "40-catch-falling",
-      "title": "Catch Falling Items",
-      "description": "Move your basket to catch the falling objects.",
-      "category": "arcade",
-      "tags": [
-        "arcade",
-        "catch"
-      ],
-      "symbol": "🧺",
-      "path": "games/40-catch-falling/index.html",
-      "source": "https://github.com/NnopponS/100-games/blob/main/40-catch-falling/index.html",
-      "sourceLabel": "ORIGINAL SOURCE",
-      "status": "LOCAL BUILD"
-    },
-    {
       "id": "41-dodger",
       "title": "Dodger",
       "description": "Move through the field and avoid incoming obstacles.",
@@ -516,36 +501,6 @@
       "status": "LOCAL BUILD"
     },
     {
-      "id": "55-balloon-pop",
-      "title": "Balloon Pop",
-      "description": "Pop the balloons as they appear on screen.",
-      "category": "casual",
-      "tags": [
-        "casual",
-        "arcade"
-      ],
-      "symbol": "🎈",
-      "path": "games/55-balloon-pop/index.html",
-      "source": "https://github.com/NnopponS/100-games/blob/main/55-balloon-pop/index.html",
-      "sourceLabel": "ORIGINAL SOURCE",
-      "status": "LOCAL BUILD"
-    },
-    {
-      "id": "57-button-masher",
-      "title": "Button Masher",
-      "description": "A quick button-pressing score challenge.",
-      "category": "arcade",
-      "tags": [
-        "arcade",
-        "reaction"
-      ],
-      "symbol": "🕹️",
-      "path": "games/57-button-masher/index.html",
-      "source": "https://github.com/NnopponS/100-games/blob/main/57-button-masher/index.html",
-      "sourceLabel": "ORIGINAL SOURCE",
-      "status": "LOCAL BUILD"
-    },
-    {
       "id": "58-rhythm-tap",
       "title": "Rhythm Tap",
       "description": "Tap along to the rhythm and keep your timing.",
@@ -561,21 +516,6 @@
       "status": "LOCAL BUILD"
     },
     {
-      "id": "60-math-sprint",
-      "title": "Math Sprint",
-      "description": "Solve quick arithmetic questions against the clock.",
-      "category": "education",
-      "tags": [
-        "education",
-        "math"
-      ],
-      "symbol": "➗",
-      "path": "games/60-math-sprint/index.html",
-      "source": "https://github.com/NnopponS/100-games/blob/main/60-math-sprint/index.html",
-      "sourceLabel": "ORIGINAL SOURCE",
-      "status": "LOCAL BUILD"
-    },
-    {
       "id": "61-word-scramble",
       "title": "Word Scramble",
       "description": "Unscramble the letters to find each word.",
@@ -587,22 +527,6 @@
       "symbol": "🔤",
       "path": "games/61-word-scramble/index.html",
       "source": "https://github.com/NnopponS/100-games/blob/main/61-word-scramble/index.html",
-      "sourceLabel": "ORIGINAL SOURCE",
-      "status": "LOCAL BUILD"
-    },
-    {
-      "id": "62-flags-quiz",
-      "title": "Flags Quiz",
-      "description": "Identify countries from their flags.",
-      "category": "education",
-      "tags": [
-        "education",
-        "geography",
-        "quiz"
-      ],
-      "symbol": "🌍",
-      "path": "games/62-flags-quiz/index.html",
-      "source": "https://github.com/NnopponS/100-games/blob/main/62-flags-quiz/index.html",
       "sourceLabel": "ORIGINAL SOURCE",
       "status": "LOCAL BUILD"
     },
@@ -639,114 +563,6 @@
       "status": "LOCAL BUILD"
     },
     {
-      "id": "68-pixel-painter",
-      "title": "Pixel Painter",
-      "description": "Create pixel art on a simple digital canvas.",
-      "category": "creative",
-      "tags": [
-        "creative",
-        "art",
-        "pixel"
-      ],
-      "symbol": "🖌️",
-      "path": "games/68-pixel-painter/index.html",
-      "source": "https://github.com/NnopponS/100-games/blob/main/68-pixel-painter/index.html",
-      "sourceLabel": "ORIGINAL SOURCE",
-      "status": "LOCAL BUILD"
-    },
-    {
-      "id": "70-falling-sand",
-      "title": "Falling Sand",
-      "description": "Experiment with falling particles in a small sandbox.",
-      "category": "sandbox",
-      "tags": [
-        "sandbox",
-        "simulation",
-        "particles"
-      ],
-      "symbol": "🏖️",
-      "path": "games/70-falling-sand/index.html",
-      "source": "https://github.com/NnopponS/100-games/blob/main/70-falling-sand/index.html",
-      "sourceLabel": "ORIGINAL SOURCE",
-      "status": "LOCAL BUILD"
-    },
-    {
-      "id": "75-train-switcher",
-      "title": "Train Switcher",
-      "description": "Switch railway tracks to guide trains to their destinations.",
-      "category": "puzzle",
-      "tags": [
-        "puzzle",
-        "logic"
-      ],
-      "symbol": "🚂",
-      "path": "games/75-train-switcher/index.html",
-      "source": "https://github.com/NnopponS/100-games/blob/main/75-train-switcher/index.html",
-      "sourceLabel": "ORIGINAL SOURCE",
-      "status": "LOCAL BUILD"
-    },
-    {
-      "id": "78-capitals-quiz",
-      "title": "World Capitals Quiz",
-      "description": "Test your knowledge of world capitals.",
-      "category": "education",
-      "tags": [
-        "education",
-        "geography",
-        "quiz"
-      ],
-      "symbol": "🌐",
-      "path": "games/78-capitals-quiz/index.html",
-      "source": "https://github.com/NnopponS/100-games/blob/main/78-capitals-quiz/index.html",
-      "sourceLabel": "ORIGINAL SOURCE",
-      "status": "LOCAL BUILD"
-    },
-    {
-      "id": "79-tangram",
-      "title": "Tangram Puzzle",
-      "description": "Arrange geometric pieces to complete each shape.",
-      "category": "puzzle",
-      "tags": [
-        "puzzle",
-        "geometry"
-      ],
-      "symbol": "🔺",
-      "path": "games/79-tangram/index.html",
-      "source": "https://github.com/NnopponS/100-games/blob/main/79-tangram/index.html",
-      "sourceLabel": "ORIGINAL SOURCE",
-      "status": "LOCAL BUILD"
-    },
-    {
-      "id": "80-jigsaw",
-      "title": "Jigsaw Lite",
-      "description": "Reassemble the pieces to complete the picture.",
-      "category": "puzzle",
-      "tags": [
-        "puzzle",
-        "jigsaw"
-      ],
-      "symbol": "🧩",
-      "path": "games/80-jigsaw/index.html",
-      "source": "https://github.com/NnopponS/100-games/blob/main/80-jigsaw/index.html",
-      "sourceLabel": "ORIGINAL SOURCE",
-      "status": "LOCAL BUILD"
-    },
-    {
-      "id": "84-emoji-match",
-      "title": "Symbol Match",
-      "description": "Find matching symbols in a quick memory game.",
-      "category": "casual",
-      "tags": [
-        "casual",
-        "memory"
-      ],
-      "symbol": "🙂",
-      "path": "games/84-emoji-match/index.html",
-      "source": "https://github.com/NnopponS/100-games/blob/main/84-emoji-match/index.html",
-      "sourceLabel": "ORIGINAL SOURCE",
-      "status": "LOCAL BUILD"
-    },
-    {
       "id": "88-snake-maze",
       "title": "Snake Maze",
       "description": "Guide the snake through a maze to reach the goal.",
@@ -773,97 +589,6 @@
       "symbol": "⚽",
       "path": "games/89-bounce-ball/index.html",
       "source": "https://github.com/NnopponS/100-games/blob/main/89-bounce-ball/index.html",
-      "sourceLabel": "ORIGINAL SOURCE",
-      "status": "LOCAL BUILD"
-    },
-    {
-      "id": "91-volcano-escape",
-      "title": "Volcano Escape",
-      "description": "Navigate a platform challenge through a volcanic environment.",
-      "category": "adventure",
-      "tags": [
-        "adventure",
-        "platformer"
-      ],
-      "symbol": "🌋",
-      "path": "games/91-volcano-escape/index.html",
-      "source": "https://github.com/NnopponS/100-games/blob/main/91-volcano-escape/index.html",
-      "sourceLabel": "ORIGINAL SOURCE",
-      "status": "LOCAL BUILD"
-    },
-    {
-      "id": "92-treasure-dive",
-      "title": "Treasure Dive",
-      "description": "Explore underwater and collect hidden treasure.",
-      "category": "adventure",
-      "tags": [
-        "adventure",
-        "exploration"
-      ],
-      "symbol": "🤿",
-      "path": "games/92-treasure-dive/index.html",
-      "source": "https://github.com/NnopponS/100-games/blob/main/92-treasure-dive/index.html",
-      "sourceLabel": "ORIGINAL SOURCE",
-      "status": "LOCAL BUILD"
-    },
-    {
-      "id": "93-bug-squash",
-      "title": "Bug Squash",
-      "description": "A fast-paced arcade game about catching bugs on screen.",
-      "category": "arcade",
-      "tags": [
-        "arcade",
-        "reaction"
-      ],
-      "symbol": "🐞",
-      "path": "games/93-bug-squash/index.html",
-      "source": "https://github.com/NnopponS/100-games/blob/main/93-bug-squash/index.html",
-      "sourceLabel": "ORIGINAL SOURCE",
-      "status": "LOCAL BUILD"
-    },
-    {
-      "id": "94-ghost-catch",
-      "title": "Ghost Catch",
-      "description": "Catch the wandering ghosts in a simple arcade challenge.",
-      "category": "arcade",
-      "tags": [
-        "arcade",
-        "casual"
-      ],
-      "symbol": "👻",
-      "path": "games/94-ghost-catch/index.html",
-      "source": "https://github.com/NnopponS/100-games/blob/main/94-ghost-catch/index.html",
-      "sourceLabel": "ORIGINAL SOURCE",
-      "status": "LOCAL BUILD"
-    },
-    {
-      "id": "97-math-blocks",
-      "title": "Math Blocks",
-      "description": "Solve number puzzles using falling blocks.",
-      "category": "education",
-      "tags": [
-        "education",
-        "math",
-        "puzzle"
-      ],
-      "symbol": "🔢",
-      "path": "games/97-math-blocks/index.html",
-      "source": "https://github.com/NnopponS/100-games/blob/main/97-math-blocks/index.html",
-      "sourceLabel": "ORIGINAL SOURCE",
-      "status": "LOCAL BUILD"
-    },
-    {
-      "id": "99-kite-flyer",
-      "title": "Kite Flyer",
-      "description": "Keep a kite aloft and guide it through the sky.",
-      "category": "casual",
-      "tags": [
-        "casual",
-        "arcade"
-      ],
-      "symbol": "🪁",
-      "path": "games/99-kite-flyer/index.html",
-      "source": "https://github.com/NnopponS/100-games/blob/main/99-kite-flyer/index.html",
       "sourceLabel": "ORIGINAL SOURCE",
       "status": "LOCAL BUILD"
     }
